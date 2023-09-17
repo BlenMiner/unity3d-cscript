@@ -1,0 +1,18 @@
+{
+    "name": "CScript.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0ffc6b7c05a9c194c87fcbff6bf4b489"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
