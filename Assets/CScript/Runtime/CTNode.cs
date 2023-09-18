@@ -5,8 +5,10 @@ public enum CTNodeType
     Root,
     Expression,
     Operator,
-    OperatorOrValue,
-    Value
+    Value,
+    FunctionDeclaration,
+    ArgumentsDeclaration,
+    ArgumentDeclaration
 }
 
 public abstract class CTNode

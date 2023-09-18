@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 [System.Serializable]
 public class CTRoot : CTNode
@@ -8,6 +9,13 @@ public class CTRoot : CTNode
     public IReadOnlyList<CTNode> Children => m_children;
 
     public CTRoot() : base(CTNodeType.Root) {}
+    
+    public static readonly CTokenType[] FUNCTION_SIG =
+    {
+        CTokenType.WORD,
+        CTokenType.WORD,
+        CTokenType.LEFT_PARENTHESES
+    };
     
     public void Parse(CScript script)
     {
@@ -23,18 +31,51 @@ public class CTRoot : CTNode
                 continue;
             }
             
-            try
+            if (MatchSignature(script, index, FUNCTION_SIG))
             {
-                var response = CTNodeExpression.Parse(script, index);
-                m_children.Add(response.Node);
-                index = response.Index;
+                Add(script, CTFunctionDeclaration.Parse, ref index);
             }
-            catch (CScriptException ex)
+            else
             {
-                script.Errors.Add(ex);
-                index = SkipUntilSemicolon(script, index);
+                Add(script, CTExpression.Parse, ref index);
             }
         }
+    }
+
+    private void Add(CScript script, Func<CScript, int, CTNodeResponse> parser, ref int index)
+    {
+        try
+        {
+            var response = parser(script, index);
+            m_children.Add(response.Node);
+            index = response.Index;
+        }
+        catch (CScriptException ex)
+        {
+            script.Errors.Add(ex);
+            index = SkipUntilSemicolon(script, index);
+        }
+    }
+    
+    private bool MatchSignature(CScript script, int index, IReadOnlyList<CTokenType> types)
+    {
+        if (index >= script.Tokens.Count)
+            return false;
+
+        if (script.Tokens.Count - index < types.Count)
+            return false;
+
+        for (var i = 0; i < types.Count; i++)
+        {
+            var type = types[i];
+            
+            if (type == CTokenType.NULL) continue;
+            
+            if (script.Tokens[index + i].Type != type)
+                return false;
+        }
+
+        return true;
     }
 
     private static int SkipUntilSemicolon(CScript script, int index)

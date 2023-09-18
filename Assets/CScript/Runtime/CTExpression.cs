@@ -14,11 +14,11 @@ public struct CTNodeResponse
 }
 
 [System.Serializable]
-public class CTNodeExpression : CTNode
+public class CTExpression : CTNode
 {
     public readonly CTNode TreeRoot;
 
-    public CTNodeExpression(CTNode tree) : base(CTNodeType.Expression)
+    public CTExpression(CTNode tree) : base(CTNodeType.Expression)
     {
         TreeRoot = tree;
     }
@@ -152,7 +152,7 @@ public class CTNodeExpression : CTNode
         }
 
         var tree = valueStack.Pop();
-        var node = new CTNodeExpression(tree);
+        var node = new CTExpression(tree);
         
         Debug.Log(DebugLogNode(tree));
         
@@ -188,35 +188,50 @@ public class CTNodeExpression : CTNode
         return true;
     }
 
-    private static string DebugLogNode(CTNode node, int lastPriority = 0)
+    private static string DebugLogNode(CTNode node, bool inMultiplicationChain = false, int parentPriority = -1)
     {
         string str = string.Empty;
-        
+
         switch (node)
         {
             case CTNodeOperator op:
+                int currentPriority = TokenPriority(op.Operator);
 
-                int p = TokenPriority(op.Operator);
-                bool shouldParenthesis = p == 1 && lastPriority != 1;
-                if (shouldParenthesis)
-                {
-                    str += '(';
-                }
+                // Check if the current operation is part of a multiplication chain
+                bool isMultiplication = op.Operator.Type is CTokenType.MULTIPLY or CTokenType.DIVIDE;
                 
-                str += DebugLogNode(op.Left, p);
-                str += (op.Left is CTNodeEmpty ? string.Empty : " ") + op.Operator.Span.Content + (op.Right is CTNodeEmpty || op.Left is CTNodeEmpty ? string.Empty : " ");
-                str += DebugLogNode(op.Right, p);
-                
-                if (shouldParenthesis)
+                bool shouldAddParentheses = parentPriority > currentPriority;
+
+                // Add parenthesis if entering a new chain of multiplications/divisions
+                if (isMultiplication && !inMultiplicationChain || shouldAddParentheses)
                 {
-                    str += ')';
+                    str += "(";
                 }
+
+                // Decide whether to add spaces around the operator
+                bool shouldAddSpaces = !(op.Left is CTNodeEmpty || op.Right is CTNodeEmpty);
+                string spaces = shouldAddSpaces ? " " : "";
+
+                // Parse left and right operands
+                str += DebugLogNode(op.Left, isMultiplication, currentPriority);
+                str += spaces + op.Operator.Span.Content + spaces;
+                str += DebugLogNode(op.Right, isMultiplication, currentPriority);
+
+                // Close parenthesis if exiting a chain of multiplications/divisions
+                if (isMultiplication && !inMultiplicationChain || shouldAddParentheses)
+                {
+                    str += ")";
+                }
+            
                 break;
+
             case CTNodeValue value:
                 str += value.Token.Span.Content;
                 break;
+            // Include other cases like CTNodeFunctionCall, CTNodeEmpty, etc.
         }
 
         return str;
     }
+
 }

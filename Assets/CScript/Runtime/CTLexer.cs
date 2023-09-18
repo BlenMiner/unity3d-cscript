@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public enum CTokenType
 {
     NULL,
@@ -14,6 +15,7 @@ public enum CTokenType
     LEFT_PARENTHESES,
     RIGHT_PARENTHESES,
     SEMICOLON,
+    COMMA,
     BIT_SHIFT_LEFT,
     BIT_SHIFT_RIGHT,
     BIT_AND,
@@ -22,14 +24,14 @@ public enum CTokenType
     BIT_NOT
 }
 
-[System.Serializable]
+[Serializable]
 public enum CTOptions
 {
     NONE,
     UNARY,
 }
 
-[System.Serializable]
+[Serializable]
 public struct CToken
 {
     public CTokenType Type;
@@ -37,13 +39,30 @@ public struct CToken
     public CSpan Span;
 }
 
-[System.Serializable]
+[Serializable]
 public struct CSpan
 {
     public int Start;
     public int End;
     public string Content;
-    
+
+    public override bool Equals(object obj)
+    {
+        if (obj is CSpan other)
+            return Equals(other);
+        return false;
+    }
+
+    public bool Equals(CSpan other)
+    {
+        return Start == other.Start && End == other.End;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Start, End, Content);
+    }
+
     public CSpan(int start, int end, string content)
     {
         Start = start;
@@ -65,7 +84,7 @@ public static class CSpanUtils
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class CTLexer
 {
     [SerializeField] List<CToken> m_tokens = new ();
@@ -209,6 +228,16 @@ public class CTLexer
                 m_tokens.Add(new CToken
                 {
                     Type = CTokenType.SEMICOLON,
+                    Span = source.ToCSpan(start, end + 1),
+                });
+
+                end++;
+                break;
+            
+            case ',':
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.COMMA,
                     Span = source.ToCSpan(start, end + 1),
                 });
 

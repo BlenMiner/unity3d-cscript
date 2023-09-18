@@ -11,28 +11,37 @@ public class CScriptDynamicGUI : PropertyDrawer
         if (property.managedReferenceValue == null)
         {
             var src = ScriptableObject.CreateInstance<CScript>();
-            src.Setup(Random.Range(-100, 100).ToString());
+            src.Setup(CScriptDynamic.DEFAULT_CODE);
             var inline = new CScriptInline(src);
             
             property.managedReferenceValue = inline;
         }
         
         var script = property.FindPropertyRelative("m_script").objectReferenceValue as CScript;
-
+        
         if (!script)
-            return base.GetPropertyHeight(property, label) + CScriptField.BOTTOM_MARGIN;
+            return base.GetPropertyHeight(property, label);
 
-        return (base.GetPropertyHeight(property, label) - 3) * Mathf.Max(1, script.LineCount) + CScriptField.BOTTOM_MARGIN;
+        return (base.GetPropertyHeight(property, label) - 3) * Mathf.Max(1, script.LineCount) + 
+               (CScriptField.BOTTOM_MARGIN * (script.Errors.Count > 0 ? 1 : 0));
     }
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        var focus = GUI.GetNameOfFocusedControl();
         EditorGUI.BeginProperty(position, label, property);
         
         m_field ??= new CScriptField(property.FindPropertyRelative("m_script").objectReferenceValue as CScript);
-        m_field?.OnGUI(position);
         
+        EditorGUI.LabelField(position, label);
+        
+        float labelWidth = EditorGUIUtility.labelWidth * 0.5f;
+        
+        position.x += labelWidth;
+        position.width -= labelWidth;
+        
+        if (m_field.OnGUI(position))
+            EditorUtility.SetDirty(property.serializedObject.targetObject);
+
         EditorGUI.EndProperty();
     }
 }

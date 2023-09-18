@@ -15,6 +15,8 @@ public class CScriptException : Exception
 
     public override string ToString()
     {
-        return string.IsNullOrWhiteSpace(Hint) ? $"({Token.Span.Start}-{Token.Span.End}): {Message}" : $"'{Token.Span}': {Message} ({Hint})";
+        var token = Token.Span.Content ?? "EOF";
+        
+        return string.IsNullOrWhiteSpace(Hint) ? $"({token}): {Message}" : $"'{token}': {Message} ({Hint})";
     }
 }
