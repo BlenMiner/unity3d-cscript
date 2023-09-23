@@ -13,20 +13,13 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_INT, 5);
-            compiled.Add(Opcodes.PUSH_INT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.ADD_INT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            int result = stack.PopInt();
+            int result = (int)stack.Pop();
             Assert.AreEqual(10, result);
         }
         
@@ -39,20 +32,13 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_UINT, 5);
-            compiled.Add(Opcodes.PUSH_UINT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.ADD_UINT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            uint result = stack.PopUInt();
+            uint result = (uint)stack.Pop();
             Assert.AreEqual(10, result);
         }
         
@@ -65,20 +51,13 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_LONG, 5);
-            compiled.Add(Opcodes.PUSH_LONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.ADD_LONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            long result = stack.PopLong();
+            long result = stack.Pop();
             Assert.AreEqual(10, result);
         }
         
@@ -91,25 +70,18 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.ADD_ULONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            ulong result = stack.PopULong();
+            ulong result = (ulong)stack.Pop();
             Assert.AreEqual(10, result);
         }
         
         [Test]
-        public void ADD_FLOAT32()
+        public unsafe void ADD_FLOAT32()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
@@ -117,25 +89,19 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
             compiled.Add(Opcodes.ADD_FLOAT, 5.0f);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            float result = stack.PopFloat();
+            var r = stack.Pop();
+            float result = *(float*)&r;
             Assert.AreEqual(10.0f, result);
         }
         
         [Test]
-        public void ADD_DOUBLE64()
+        public unsafe void ADD_DOUBLE64()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
@@ -143,20 +109,14 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
             compiled.Add(Opcodes.ADD_DOUBLE, 5.0);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            double result = stack.PopDouble();
+            var r = stack.Pop();
+            double result = *(double*)&r;
             Assert.AreEqual(10.0, result);
         }
         
@@ -169,21 +129,14 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_INT, 5);
-            compiled.Add(Opcodes.PUSH_INT, 5);
-            compiled.Add(Opcodes.SUB_INT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 1);
+            compiled.Add(Opcodes.SUB_INT);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            int result = stack.PopInt();
-            Assert.AreEqual(0, result);
+            int result = (int)stack.Pop();
+            Assert.AreEqual(4, result);
         }
         
         [Test]
@@ -195,20 +148,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_UINT, 5);
-            compiled.Add(Opcodes.PUSH_UINT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.SUB_UINT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            uint result = stack.PopUInt();
+            uint result = (uint)stack.Pop();
             Assert.AreEqual(0, result);
         }
         
@@ -221,20 +167,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_LONG, 5);
-            compiled.Add(Opcodes.PUSH_LONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.SUB_LONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            long result = stack.PopLong();
+            long result = stack.Pop();
             Assert.AreEqual(0, result);
         }
         
@@ -247,20 +186,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.SUB_ULONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            ulong result = stack.PopULong();
+            ulong result = (ulong)stack.Pop();
             Assert.AreEqual(0, result);
         }
         
@@ -273,29 +205,19 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
             compiled.Add(Opcodes.SUB_FLOAT, 5.0f);
-            compiled.Add(Opcodes.POP_FLOAT);
+            compiled.Add(Opcodes.POP);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(0, stack.StackByteSize);
-
-            var res = stack.R0;
+            var res = stack.Operand;
             Assert.AreEqual(0.0f, *(float*)&res);
         }
         
         [Test]
-        public void SUB_DOUBLE64()
+        public unsafe void SUB_DOUBLE64()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
@@ -303,20 +225,14 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
             compiled.Add(Opcodes.SUB_DOUBLE, 5.0);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            double result = stack.PopDouble();
+            var r = stack.Pop();
+            double result = *(double*)&r;
             Assert.AreEqual(0.0, result);
         }
         
@@ -329,20 +245,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_INT, 5);
-            compiled.Add(Opcodes.PUSH_INT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.MUL_INT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            int result = stack.PopInt();
+            int result = (int)stack.Pop();
             Assert.AreEqual(25, result);
         }
         
@@ -355,20 +264,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_UINT, 5);
-            compiled.Add(Opcodes.PUSH_UINT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.MUL_UINT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-
-            uint result = stack.PopUInt();
+            uint result = (uint)stack.Pop();
             Assert.AreEqual(25, result);
         }
         
@@ -381,20 +283,13 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
 
-            compiled.Add(Opcodes.PUSH_LONG, 5);
-            compiled.Add(Opcodes.PUSH_LONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.MUL_LONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
 
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-
-            long result = stack.PopLong();
+            long result = stack.Pop();
             Assert.AreEqual(25, result);
         }
         
@@ -407,25 +302,18 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.MUL_ULONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            ulong result = stack.PopULong();
+            ulong result = (ulong)stack.Pop();
             Assert.AreEqual(25, result);
         }
         
         [Test]
-        public void MUL_FLOAT32()
+        public unsafe void MUL_FLOAT32()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
@@ -433,25 +321,19 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
             compiled.Add(Opcodes.MUL_FLOAT, 5.0f);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-            
-            float result = stack.PopFloat();
+            var r = stack.Pop();
+            float result = *(float*)&r;
             Assert.AreEqual(5.0f * 5.0f, result);
         }
         
         [Test]
-        public void MUL_DOUBLE64()
+        public unsafe void MUL_DOUBLE64()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
@@ -459,20 +341,14 @@ namespace CScript.UnitTests
             
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
             compiled.Add(Opcodes.MUL_DOUBLE, 5.0);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            double result = stack.PopDouble();
+            var r = stack.Pop();
+            double result = *(double*)&r;
             Assert.AreEqual(5.0 * 5.0, result);
         }
         
@@ -484,20 +360,13 @@ namespace CScript.UnitTests
             var program = new CScriptProgram(compiled, stack);
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_INT, 5);
-            compiled.Add(Opcodes.PUSH_INT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.DIV_INT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-            
-            int result = stack.PopInt();
+            int result = (int)stack.Pop();
             Assert.AreEqual(1, result);
         }
         
@@ -510,20 +379,13 @@ namespace CScript.UnitTests
 
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_UINT, 5);
-            compiled.Add(Opcodes.PUSH_UINT, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.DIV_UINT, 5);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-            
-            uint result = stack.PopUInt();
+            uint result = (uint)stack.Pop();
             Assert.AreEqual(1, result);
         }
         
@@ -535,20 +397,13 @@ namespace CScript.UnitTests
             var program = new CScriptProgram(compiled, stack);
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_LONG, 5);
-            compiled.Add(Opcodes.PUSH_LONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.DIV_LONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            long result = stack.PopLong();
+            long result = stack.Pop();
             Assert.AreEqual(1, result);
         }
         
@@ -560,70 +415,51 @@ namespace CScript.UnitTests
             var program = new CScriptProgram(compiled, stack);
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
-            compiled.Add(Opcodes.PUSH_ULONG, 5);
+            compiled.Add(Opcodes.PUSH, 5);
+            compiled.Add(Opcodes.PUSH, 5);
             compiled.Add(Opcodes.DIV_ULONG, 5);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            ulong result = stack.PopULong();
+            ulong result = (ulong)stack.Pop();
             Assert.AreEqual(1, result);
         }
         
         [Test]
-        public void DIV_FLOAT32()
+        public unsafe void DIV_FLOAT32()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
             var program = new CScriptProgram(compiled, stack);
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
-            compiled.Add(Opcodes.PUSH_FLOAT, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
+            compiled.Add(Opcodes.PUSH, 5.0f);
             compiled.Add(Opcodes.DIV_FLOAT, 5.0f);
 
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(4, stack.StackByteSize);
-            
-            float result = stack.PopFloat();
+            var r = stack.Pop();
+            float result = *(float*)&r;
             Assert.AreEqual(1.0f, result);
         }
         
         [Test]
-        public void DIV_DOUBLE64()
+        public unsafe void DIV_DOUBLE64()
         {
             var stack = new CScriptStack();
             var compiled = new CScriptCompiled();
             var program = new CScriptProgram(compiled, stack);
             Assert.AreEqual(0, stack.StackByteSize);
             
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
-            compiled.Add(Opcodes.PUSH_DOUBLE, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
+            compiled.Add(Opcodes.PUSH, 5.0);
             compiled.Add(Opcodes.DIV_DOUBLE, 5.0);
 
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
+            program.RunWithErrorLogging();
             
-            program.Step();
-            Assert.AreEqual(16, stack.StackByteSize);
-            
-            program.Step();
-            Assert.AreEqual(8, stack.StackByteSize);
-            
-            double result = stack.PopDouble();
+            var r = stack.Pop();
+            double result = *(double*)&r;
             Assert.AreEqual(1.0, result);
         }
     }

@@ -4,7 +4,7 @@ namespace CScript
 {
     public static class CScriptOpcodeExtensions
     {
-        private static Action<CScriptStack>[] OP_CODE_IMPLEMENTATION;
+        public static Action<CScriptStack>[] OP_CODE_IMPLEMENTATION;
         
         static bool s_initialized;
         
@@ -15,27 +15,10 @@ namespace CScript
             s_initialized = true;
             OP_CODE_IMPLEMENTATION = new Action<CScriptStack>[(int) Opcodes.OPCODE_COUNT];
             
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_BYTE] = CScriptStackIntructions.PushByte;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_SBYTE] = CScriptStackIntructions.PushSByte;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_SHORT] = CScriptStackIntructions.PushShort;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_USHORT] = CScriptStackIntructions.PushUShort;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_INT] = CScriptStackIntructions.PushInt;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_UINT] = CScriptStackIntructions.PushUInt;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_LONG] = CScriptStackIntructions.PushLong;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_ULONG] = CScriptStackIntructions.PushULong;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_FLOAT] = CScriptStackIntructions.PushFloat;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH_DOUBLE] = CScriptStackIntructions.PushDouble;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.DEBUG] = CScriptStackIntructions.DEBUG;
             
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_BYTE] = CScriptStackIntructions.PopByte;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_SBYTE] = CScriptStackIntructions.PopSByte;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_SHORT] = CScriptStackIntructions.PopShort;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_USHORT] = CScriptStackIntructions.PopUShort;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_INT] = CScriptStackIntructions.PopInt;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_UINT] = CScriptStackIntructions.PopUInt;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_LONG] = CScriptStackIntructions.PopLong;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_ULONG] = CScriptStackIntructions.PopULong;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_FLOAT] = CScriptStackIntructions.PopFloat;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP_DOUBLE] = CScriptStackIntructions.PopDouble; 
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.PUSH] = CScriptStackIntructions.PushLong;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.POP] = CScriptStackIntructions.PopLong;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_BYTE] = CScriptMathInstructions.ADD_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_SBYTE] = CScriptMathInstructions.ADD_SBYTE;
@@ -47,6 +30,7 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_ULONG] = CScriptMathInstructions.ADD_ULONG;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_FLOAT] = CScriptMathInstructions.ADD_FLOAT;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_DOUBLE] = CScriptMathInstructions.ADD_DOUBLE;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD] = CScriptMathInstructions.ADD_LONG;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB_BYTE] = CScriptMathInstructions.SUB_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB_SBYTE] = CScriptMathInstructions.SUB_SBYTE;
@@ -58,6 +42,7 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB_ULONG] = CScriptMathInstructions.SUB_ULONG;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB_FLOAT] = CScriptMathInstructions.SUB_FLOAT;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB_DOUBLE] = CScriptMathInstructions.SUB_DOUBLE;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.SUB] = CScriptMathInstructions.SUB_LONG;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.MUL_BYTE] = CScriptMathInstructions.MUL_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.MUL_SBYTE] = CScriptMathInstructions.MUL_SBYTE;
@@ -69,6 +54,7 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.MUL_ULONG] = CScriptMathInstructions.MUL_ULONG;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.MUL_FLOAT] = CScriptMathInstructions.MUL_FLOAT;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.MUL_DOUBLE] = CScriptMathInstructions.MUL_DOUBLE;
+            OP_CODE_IMPLEMENTATION[(int)Opcodes.MUL] = CScriptMathInstructions.MUL_LONG;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_BYTE] = CScriptMathInstructions.DIV_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_SBYTE] = CScriptMathInstructions.DIV_SBYTE;
@@ -80,6 +66,7 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_ULONG] = CScriptMathInstructions.DIV_ULONG;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_FLOAT] = CScriptMathInstructions.DIV_FLOAT;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_DOUBLE] = CScriptMathInstructions.DIV_DOUBLE;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV] = CScriptMathInstructions.DIV_LONG;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP] = CScriptFlowControlInst.JMP;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP_IF_TRUE] = CScriptFlowControlInst.JMP_IF_TRUE;
@@ -87,27 +74,8 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.CALL] = CScriptFlowControlInst.CALL;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.RET] = CScriptFlowControlInst.RET;
             
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_BYTE] = CScriptEqualiyInst.EQUAL_BYTE;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_SBYTE] = CScriptEqualiyInst.EQUAL_SBYTE;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_SHORT] = CScriptEqualiyInst.EQUAL_SHORT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_USHORT] = CScriptEqualiyInst.EQUAL_USHORT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_INT] = CScriptEqualiyInst.EQUAL_INT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_UINT] = CScriptEqualiyInst.EQUAL_UINT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_LONG] = CScriptEqualiyInst.EQUAL_LONG;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_ULONG] = CScriptEqualiyInst.EQUAL_ULONG;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_FLOAT] = CScriptEqualiyInst.EQUAL_FLOAT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_DOUBLE] = CScriptEqualiyInst.EQUAL_DOUBLE;
-            
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_BYTE] = CScriptEqualiyInst.NOT_EQUAL_BYTE;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_SBYTE] = CScriptEqualiyInst.NOT_EQUAL_SBYTE;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_SHORT] = CScriptEqualiyInst.NOT_EQUAL_SHORT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_USHORT] = CScriptEqualiyInst.NOT_EQUAL_USHORT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_INT] = CScriptEqualiyInst.NOT_EQUAL_INT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_UINT] = CScriptEqualiyInst.NOT_EQUAL_UINT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_LONG] = CScriptEqualiyInst.NOT_EQUAL_LONG;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_ULONG] = CScriptEqualiyInst.NOT_EQUAL_ULONG;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_FLOAT] = CScriptEqualiyInst.NOT_EQUAL_FLOAT;
-            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_DOUBLE] = CScriptEqualiyInst.NOT_EQUAL_DOUBLE;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL] = CScriptEqualiyInst.EQUAL;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL] = CScriptEqualiyInst.NOT_EQUAL;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.GREATER_THAN_BYTE] = CScriptEqualiyInst.GREATER_THAN_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.GREATER_THAN_SBYTE] = CScriptEqualiyInst.GREATER_THAN_SBYTE;
@@ -152,9 +120,13 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.LESS_EQUAL_ULONG] = CScriptEqualiyInst.LESS_EQUAL_ULONG;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.LESS_EQUAL_FLOAT] = CScriptEqualiyInst.LESS_EQUAL_FLOAT;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.LESS_EQUAL_DOUBLE] = CScriptEqualiyInst.LESS_EQUAL_DOUBLE;
+            
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.DUPLICATE] = CScriptRegisterInst.COPY_LONG;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.LOAD_REGISTER] = CScriptRegisterInst.LOAD_LONG;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.MOVE_TO_REGISTER] = CScriptRegisterInst.MOVE_LONG;
         }
         
-        public static void Execute(this Opcodes opcode, CScriptStack stack)
-            => OP_CODE_IMPLEMENTATION[(int) opcode].Invoke(stack);
+        public static void Execute(Opcodes opcode, CScriptStack stack)
+            => OP_CODE_IMPLEMENTATION[(int) opcode](stack);
     }
 }

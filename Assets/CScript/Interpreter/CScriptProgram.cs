@@ -1,4 +1,7 @@
-﻿namespace CScript
+﻿using System;
+using UnityEngine;
+
+namespace CScript
 {
     public sealed class CScriptProgram
     {
@@ -18,15 +21,61 @@
         {
             var instruction = m_compiledScript.Instructions[m_stack.IP++];
             
-            if (instruction.HasValue) m_stack.R0 = instruction.Value;
+            if (instruction.HasValue == 1) m_stack.Operand = instruction.Value;
             
-            instruction.Opcode.Execute(m_stack);
+            CScriptOpcodeExtensions.Execute(instruction.Opcode, m_stack);
+        }
+        
+        public void RunFinalized()
+        {
+            if (m_compiledScript.InstructionsArray == null) 
+                m_compiledScript.FinalizeCode();
+
+            var instructions = m_compiledScript.InstructionsArray;
+            int instructionSize = instructions!.Length;
+            
+            while (m_stack.IP < instructionSize)
+            {
+                var instruction = instructions[m_stack.IP++];
+
+                var hasValueInv = 1 - instruction.HasValue;
+                m_stack.Operand = m_stack.Operand * hasValueInv + instruction.Value * instruction.HasValue;
+            
+                CScriptOpcodeExtensions.OP_CODE_IMPLEMENTATION[instruction.OpcodeIndex](m_stack);
+            }
         }
         
         public void Run()
         {
-            while (m_stack.IP < m_compiledScript.Instructions.Count)
+            int instructionSize = m_compiledScript.Instructions.Count;
+            while (m_stack.IP < instructionSize)
                 Step();
+        }
+        
+        public void RunWithErrorLogging(int maxSteps = 1000)
+        {
+            int steps = 0;
+            while (m_stack.IP < m_compiledScript.Instructions.Count && steps < maxSteps)
+            {
+                int inst = m_stack.IP;
+
+                try
+                {
+                    Step();
+                }
+                catch (Exception ex)
+                {
+                    var instruction = m_compiledScript.Instructions[inst];
+
+                    Debug.LogError(instruction.HasValue == 1
+                        ? $"Failed at {instruction.Opcode} {instruction.Value} (line {inst}): {ex.Message}"
+                        : $"Failed at {instruction.Opcode} (line {inst}): {ex.Message}");
+
+                    throw;
+                }
+                
+                steps++;
+            }
         }
     }
 }
