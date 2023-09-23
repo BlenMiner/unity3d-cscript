@@ -80,6 +80,12 @@ public class CTExpression : CTNode
                 case CTokenType.BIT_SHIFT_RIGHT:
                 case CTokenType.MULTIPLY:
                 case CTokenType.DIVIDE:
+                case CTokenType.LESS_THAN:
+                case CTokenType.MORE_THAN:
+                case CTokenType.BOOLEAN_AND:
+                case CTokenType.BOOLEAN_OR:
+                case CTokenType.BOOLEAN_NOT:
+                case CTokenType.EQUALS_EQUALS:
 
                     if (!wasOperator && token.Options == CTOptions.UNARY)
                         wasOperator = true;

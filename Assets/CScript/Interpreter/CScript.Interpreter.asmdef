@@ -1,0 +1,14 @@
+{
+    "name": "CScript.Interpreter",
+    "rootNamespace": "",
+    "references": ["GUID:53439afceabb07c41b21c7fb312948e0"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -6,8 +6,9 @@ using UnityEngine;
 [Serializable]
 public class CScript : ScriptableObject
 {
-    [SerializeField] string m_sourceCode;
+    [SerializeField] string m_CScriptSourceCode;
     [SerializeField] string m_savePath;
+    [SerializeField] string m_dynamicUID;
     [SerializeField] CTLexer m_lexer = new ();
 
     public List<CScriptException> Errors { get; private set; } = new();
@@ -16,8 +17,8 @@ public class CScript : ScriptableObject
 
     public string SourceCode
     {
-        get => m_sourceCode;
-        set => m_sourceCode = value;
+        get => m_CScriptSourceCode;
+        set => m_CScriptSourceCode = value;
     }
     
     public int LineCount { get; private set; }
@@ -42,20 +43,25 @@ public class CScript : ScriptableObject
         if (string.IsNullOrWhiteSpace(m_savePath))
             return;
         
-        File.WriteAllText(m_savePath, m_sourceCode);
+        File.WriteAllText(m_savePath, m_CScriptSourceCode);
+    }
+    
+    public void UpdateDynamicUID(string uid)
+    {
+        m_dynamicUID = uid;
     }
 
     public void Setup(string sourceCode, string savePath = null)
     {
         m_savePath = savePath;
-        m_sourceCode = sourceCode;
+        m_CScriptSourceCode = sourceCode;
         OnCodeUpdated();
     }
 
     private void OnCodeUpdated()
     {
-        LineCount = m_sourceCode.Split('\n').Length;
-        m_lexer.Parse(m_sourceCode);
+        LineCount = m_CScriptSourceCode.Split('\n').Length;
+        m_lexer.Parse(m_CScriptSourceCode);
 
         ParseRootNode();
     }

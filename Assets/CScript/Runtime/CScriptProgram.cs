@@ -1,21 +1,31 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Emit;
 using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-public class CScriptProgram
+public static class CScriptCompiler
 {
-    readonly CScript m_sourceCode;
-    
-    public CScriptProgram(CScript source)
+    [InitializeOnLoadMethod]
+    static void Init()
     {
-        m_sourceCode = source;
+        // Compile();        
     }
-    
-    void Compile(string fileName)
+
+    [MenuItem("CScript/Compile")]
+    static void Compile()
     {
+        var scripts = AssetDatabase.FindAssets("t:CScript");
+
+        for (var i = 0; i < scripts.Length; i++)
+        {
+            var guid = scripts[i];
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            Debug.Log(path);
+        }
+
+
+        string fileName = "DynamicAssembly.dll";
         // Create an assembly name
         var assemblyName = new AssemblyName(fileName);
 
@@ -29,13 +39,15 @@ public class CScriptProgram
         // Define a simple method that will return 42
         var methodBuilder = typeBuilder.DefineMethod("GetAnswer", MethodAttributes.Public | MethodAttributes.Static, typeof(int), null);
         var il = methodBuilder.GetILGenerator();
-        il.Emit(OpCodes.Ldc_I4, 69);
+        il.Emit(OpCodes.Ldc_I4, Random.Range(0, 69));
         il.Emit(OpCodes.Ret);
         
-        typeBuilder.CreateTypeInfo();
+        var typeInfo = typeBuilder.CreateTypeInfo();
+        
+        var method = typeInfo.GetMethod("GetAnswer");
+        
+        Debug.Log(method!.Invoke(null, null));
 
-        assemblyBuilder.Save($"Assets/Plugins/CScript/{fileName}");
-
-        DynamicType.GetAnswer();
+        // assemblyBuilder.Save($"Assets/Plugins/CScript/{fileName}");
     }
 }

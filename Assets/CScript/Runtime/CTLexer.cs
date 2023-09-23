@@ -21,7 +21,14 @@ public enum CTokenType
     BIT_AND,
     BIT_OR,
     BIT_XOR,
-    BIT_NOT
+    BIT_NOT,
+    LESS_THAN,
+    MORE_THAN,
+    BOOLEAN_AND,
+    BOOLEAN_OR,
+    BOOLEAN_NOT,
+    EQUALS,
+    EQUALS_EQUALS,
 }
 
 [Serializable]
@@ -187,22 +194,49 @@ public class CTLexer
                 end++;
                 break;
             case '&':
-                m_tokens.Add(new CToken
+                if (end + 1 < source.Length && source[end + 1] == '&')
                 {
-                    Type = CTokenType.BIT_AND,
-                    Span = source.ToCSpan(start, end + 1),
-                });
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BOOLEAN_AND,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
 
-                end++;
+                    end += 2;
+                }
+                else
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BIT_AND,
+                        Span = source.ToCSpan(start, end + 1),
+                    });
+
+                    end++;
+                }
                 break;
             case '|':
-                m_tokens.Add(new CToken
+                
+                if (end + 1 < source.Length && source[end + 1] == '|')
                 {
-                    Type = CTokenType.BIT_OR,
-                    Span = source.ToCSpan(start, end + 1),
-                });
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BOOLEAN_OR,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
 
-                end++;
+                    end += 2;
+                }
+                else
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BIT_OR,
+                        Span = source.ToCSpan(start, end + 1),
+                    });
+
+                    end++;
+                }
                 break;
 
             case '^':
@@ -243,6 +277,82 @@ public class CTLexer
 
                 end++;
                 break;
+            case '<':
+                if (end + 1 < source.Length && source[end + 1] == '<')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BIT_SHIFT_LEFT,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
+
+                    end += 2;
+                }
+                else
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.LESS_THAN,
+                        Span = source.ToCSpan(start, end + 1),
+                    });
+
+                    end++;
+                }
+                break;
+            case '>':
+                if (end + 1 < source.Length && source[end + 1] == '>')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.BIT_SHIFT_RIGHT,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
+
+                    end += 2;
+                }
+                else
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.MORE_THAN,
+                        Span = source.ToCSpan(start, end + 1),
+                    });
+
+                    end++;
+                }
+                break;
+            case '=':
+                if (end + 1 < source.Length && source[end + 1] == '=')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.EQUALS_EQUALS,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
+
+                    end += 2;
+                }
+                else
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.EQUALS,
+                        Span = source.ToCSpan(start, end + 1),
+                    });
+
+                    end++;
+                }
+                break;
+            case '!':
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.BOOLEAN_NOT,
+                    Options = CTOptions.UNARY,
+                    Span = source.ToCSpan(start, end + 1),
+                });
+
+                end++;
+                break;
             default:
                 end++;
                 break;
@@ -255,7 +365,7 @@ public class CTLexer
     {
         switch (span.Content)
         {
-            case "<<":
+            /*case "<<":
                 m_tokens.Add(new CToken
                 {
                     Type = CTokenType.BIT_SHIFT_LEFT,
@@ -268,7 +378,7 @@ public class CTLexer
                     Type = CTokenType.BIT_SHIFT_RIGHT,
                     Span = span,
                 });
-                break;
+                break;   */
             default:
                 m_tokens.Add(new CToken
                 {
