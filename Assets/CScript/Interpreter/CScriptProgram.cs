@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace CScript
 {
@@ -26,23 +27,29 @@ namespace CScript
             CScriptOpcodeExtensions.Execute(instruction.Opcode, m_stack);
         }
         
-        public void RunFinalized()
+        public unsafe void RunFinalized()
         {
+            Profiler.BeginSample("CScriptProgram.RunFinalized");
+            
             if (m_compiledScript.InstructionsArray == null) 
                 m_compiledScript.FinalizeCode();
 
             var instructions = m_compiledScript.InstructionsArray;
             int instructionSize = instructions!.Length;
             
+            var intructionsSpan = (ReadOnlySpan<CScriptInstruction>)instructions;
+
             while (m_stack.IP < instructionSize)
             {
-                var instruction = instructions[m_stack.IP++];
+                var instruction = intructionsSpan[m_stack.IP++];
 
-                var hasValueInv = 1 - instruction.HasValue;
-                m_stack.Operand = m_stack.Operand * hasValueInv + instruction.Value * instruction.HasValue;
-            
+                m_stack.Operand = m_stack.Operand & instruction.HasValueInverse | 
+                                  instruction.Value & instruction.HasValue;
+
                 CScriptOpcodeExtensions.OP_CODE_IMPLEMENTATION[instruction.OpcodeIndex](m_stack);
             }
+
+            Profiler.EndSample();
         }
         
         public void Run()

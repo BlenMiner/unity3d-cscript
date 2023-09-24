@@ -1,5 +1,5 @@
+using System;
 using System.Runtime.CompilerServices;
-using UnityEngine.Profiling;
 
 namespace CScript
 {
@@ -21,6 +21,8 @@ namespace CScript
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(long value)
         {
+            // var span = new ReadOnlySpan<long>(STACK, 0, STACK_SIZE);
+            
             STACK[--SP] = value;
         }
         

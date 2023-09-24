@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Emit;
 
 namespace CScript
 {
@@ -68,14 +69,32 @@ namespace CScript
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV_DOUBLE] = CScriptMathInstructions.DIV_DOUBLE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.DIV] = CScriptMathInstructions.DIV_LONG;
             
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_CONSTANT] = CScriptMathInstructions.ADD_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_LONG_CONSTANT] = CScriptMathInstructions.ADD_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_BYTE_CONSTANT] = CScriptMathInstructions.ADD_BYTE_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_SBYTE_CONSTANT] = CScriptMathInstructions.ADD_SBYTE_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_SHORT_CONSTANT] = CScriptMathInstructions.ADD_SHORT_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_USHORT_CONSTANT] = CScriptMathInstructions.ADD_USHORT_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_INT_CONSTANT] = CScriptMathInstructions.ADD_INT_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_UINT_CONSTANT] = CScriptMathInstructions.ADD_UINT_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_LONG_CONSTANT] = CScriptMathInstructions.ADD_LONG_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_ULONG_CONSTANT] = CScriptMathInstructions.ADD_ULONG_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_FLOAT_CONSTANT] = CScriptMathInstructions.ADD_FLOAT_CONSTANT;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.ADD_DOUBLE_CONSTANT] = CScriptMathInstructions.ADD_DOUBLE_CONSTANT;
+            
             OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP] = CScriptFlowControlInst.JMP;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP_IF_TRUE] = CScriptFlowControlInst.JMP_IF_TRUE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP_IF_FALSE] = CScriptFlowControlInst.JMP_IF_FALSE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.CALL] = CScriptFlowControlInst.CALL;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.RET] = CScriptFlowControlInst.RET;
             
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.JMP_IF_ZERO] = CScriptFlowControlInst.JMP_IF_ZERO;
+            
             OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL] = CScriptEqualiyInst.EQUAL;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL] = CScriptEqualiyInst.NOT_EQUAL;
+            
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.EQUAL_ZERO] = CScriptEqualiyInst.EQUAL_ZERO;
+            OP_CODE_IMPLEMENTATION[(int) Opcodes.NOT_EQUAL_ZERO] = CScriptEqualiyInst.NOT_EQUAL_ZERO;
             
             OP_CODE_IMPLEMENTATION[(int) Opcodes.GREATER_THAN_BYTE] = CScriptEqualiyInst.GREATER_THAN_BYTE;
             OP_CODE_IMPLEMENTATION[(int) Opcodes.GREATER_THAN_SBYTE] = CScriptEqualiyInst.GREATER_THAN_SBYTE;

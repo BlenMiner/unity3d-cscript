@@ -2,10 +2,22 @@
 {
     public static class CScriptEqualiyInst
     {
-        public static void EQUAL(this CScriptStack stack)
+        public static unsafe void EQUAL_ZERO(this CScriptStack stack)
         {
-            var a = stack.STACK[stack.SP++];
-            stack.STACK[stack.SP] = stack.STACK[stack.SP] == a ? 1 : 0;
+            var boolean = stack.STACK[stack.SP] == 0;
+            stack.STACK[--stack.SP] = *(byte*)&boolean;
+        }
+
+        public static unsafe void NOT_EQUAL_ZERO(this CScriptStack stack)
+        {
+            var boolean = stack.STACK[stack.SP] != 0;
+            stack.STACK[--stack.SP] = *(byte*)&boolean;
+        }
+        
+        public static unsafe void EQUAL(this CScriptStack stack)
+        {
+            var boolean = stack.STACK[stack.SP++] == stack.STACK[stack.SP];
+            stack.STACK[stack.SP] = *(byte*)&boolean;
         }
 
         public static void NOT_EQUAL(this CScriptStack stack)

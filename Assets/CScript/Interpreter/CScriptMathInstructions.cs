@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace CScript
 {
     public static class CScriptMathInstructions
@@ -288,6 +290,140 @@ namespace CScript
             var b = stack.Pop();
             var res = (*(double*)&b / *(double*)&a);
             stack.Push(*(long*)&res);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ADD_CONSTANT(CScriptStack stack)
+        {
+            stack.STACK[stack.SP] += stack.Operand;
+        }
+        
+        public static void ADD_BYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (byte)((byte)stack.STACK[stack.SP] + (byte)stack.Operand);
+        
+        public static void ADD_SBYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (sbyte)((sbyte)stack.STACK[stack.SP] + (sbyte)stack.Operand);
+        
+        public static void ADD_SHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (short)((short)stack.STACK[stack.SP] + (short)stack.Operand);
+        
+        public static void ADD_USHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (ushort)((ushort)stack.STACK[stack.SP] + (ushort)stack.Operand);
+        
+        public static void ADD_INT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (int)((int)stack.STACK[stack.SP] + (int)stack.Operand);
+        
+        public static void ADD_UINT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (uint)((uint)stack.STACK[stack.SP] + (uint)stack.Operand);
+        
+        public static void ADD_LONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((long)stack.STACK[stack.SP] + (long)stack.Operand);
+        
+        public static void ADD_ULONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((ulong)stack.STACK[stack.SP] + (ulong)stack.Operand);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void ADD_FLOAT_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(float*)&a + stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void ADD_DOUBLE_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(double*)&a + stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static void SUB_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] -= stack.Operand;
+        
+        public static void SUB_BYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (byte)((byte)stack.STACK[stack.SP] - (byte)stack.Operand);
+        
+        public static void SUB_SBYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (sbyte)((sbyte)stack.STACK[stack.SP] - (sbyte)stack.Operand);
+        
+        public static void SUB_SHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (short)((short)stack.STACK[stack.SP] - (short)stack.Operand);
+        
+        public static void SUB_USHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (ushort)((ushort)stack.STACK[stack.SP] - (ushort)stack.Operand);
+        
+        public static void SUB_INT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (int)((int)stack.STACK[stack.SP] - (int)stack.Operand);
+        
+        public static void SUB_UINT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (uint)((uint)stack.STACK[stack.SP] - (uint)stack.Operand);
+        
+        public static void SUB_LONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((long)stack.STACK[stack.SP] - (long)stack.Operand);
+        
+        public static void SUB_ULONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((ulong)stack.STACK[stack.SP] - (ulong)stack.Operand);
+        
+        public static unsafe void SUB_FLOAT_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(float*)&a - stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static unsafe void SUB_DOUBLE_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(double*)&a - stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static void MUL_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] *= stack.Operand;
+        
+        public static void MUL_BYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (byte)((byte)stack.STACK[stack.SP] * (byte)stack.Operand);
+        
+        public static void MUL_SBYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (sbyte)((sbyte)stack.STACK[stack.SP] * (sbyte)stack.Operand);
+        
+        public static void MUL_SHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (short)((short)stack.STACK[stack.SP] * (short)stack.Operand);
+        
+        public static void MUL_USHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (ushort)((ushort)stack.STACK[stack.SP] * (ushort)stack.Operand);
+        
+        public static void MUL_INT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (int)((int)stack.STACK[stack.SP] * (int)stack.Operand);
+        
+        public static void MUL_UINT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (uint)((uint)stack.STACK[stack.SP] * (uint)stack.Operand);
+        
+        public static void MUL_LONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((long)stack.STACK[stack.SP] * (long)stack.Operand);
+        
+        public static void MUL_ULONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((ulong)stack.STACK[stack.SP] * (ulong)stack.Operand);
+        
+        public static unsafe void MUL_FLOAT_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(float*)&a * stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static unsafe void MUL_DOUBLE_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(double*)&a * stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static void DIV_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] /= stack.Operand;
+        
+        public static void DIV_BYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (byte)((byte)stack.STACK[stack.SP] / (byte)stack.Operand);
+        
+        public static void DIV_SBYTE_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (sbyte)((sbyte)stack.STACK[stack.SP] / (sbyte)stack.Operand);
+        
+        public static void DIV_SHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (short)((short)stack.STACK[stack.SP] / (short)stack.Operand);
+        
+        public static void DIV_USHORT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (ushort)((ushort)stack.STACK[stack.SP] / (ushort)stack.Operand);
+        
+        public static void DIV_INT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (int)((int)stack.STACK[stack.SP] / (int)stack.Operand);
+        
+        public static void DIV_UINT_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (uint)((uint)stack.STACK[stack.SP] / (uint)stack.Operand);
+        
+        public static void DIV_LONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((long)stack.STACK[stack.SP] / (long)stack.Operand);
+        
+        public static void DIV_ULONG_CONSTANT(CScriptStack stack) => stack.STACK[stack.SP] = (long)((ulong)stack.STACK[stack.SP] / (ulong)stack.Operand);
+        
+        public static unsafe void DIV_FLOAT_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(float*)&a / stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
+        }
+        
+        public static unsafe void DIV_DOUBLE_CONSTANT(CScriptStack stack)
+        {
+            var a = stack.STACK[stack.SP];
+            var res = (*(double*)&a / stack.Operand);
+            stack.STACK[stack.SP] = *(long*)&res;
         }
     }
 }

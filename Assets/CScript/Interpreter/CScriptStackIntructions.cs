@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace CScript
 {
-    public static class CScriptStackIntructions
+    public static unsafe class CScriptStackIntructions
     {
         public static void DEBUG(this CScriptStack stack)
         {
@@ -10,14 +11,22 @@ namespace CScript
             Debug.Log("DEBUG, Int top stack: " + intVal);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PushLong(this CScriptStack stack)
         {
-            stack.STACK[--stack.SP] = stack.Operand;
+            fixed (long* ptr = stack.STACK)
+            {
+                *(ptr + --stack.SP) = stack.Operand;
+            }
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PopLong(this CScriptStack stack)
         {
-            stack.Operand = stack.STACK[stack.SP++];
+            fixed (long* ptr = stack.STACK)
+            {
+                stack.Operand = *(ptr + stack.SP++);
+            }
         }
     }
 }
