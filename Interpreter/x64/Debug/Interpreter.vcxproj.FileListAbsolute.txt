@@ -1,1 +1,0 @@
-C:\wkspaces\cscript\Interpreter\x64\Debug\Interpreter.dll
