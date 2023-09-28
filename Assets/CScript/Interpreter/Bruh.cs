@@ -1,47 +1,86 @@
-using CScript;
+using System;
+using CScript.Native;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class Bruh : MonoBehaviour
 {
-    const int LOOP_COUNT = 1_000;
-
-    CScriptProgram m_program;
-    CScriptCompiled m_code;
+    const int LOOP_COUNT = 1000000;
     
-    private void Awake()
-    {
-        var stack = new CScriptStack();
-        m_code = new CScriptCompiled();
-        m_program = new CScriptProgram(m_code, stack);
-        
-        m_code.Add(Opcodes.PUSH, 0);
-        m_code.Add(Opcodes.MOVE_TO_REGISTER, 0);
-        m_code.Add(Opcodes.PUSH, LOOP_COUNT);
-        
-        m_code.Add(Opcodes.JMP_IF_ZERO, 6);
-        
-        m_code.Add(Opcodes.ADD_CONSTANT, -1);
-        
-        m_code.Add(Opcodes.LOAD_REGISTER, 0);
-        m_code.Add(Opcodes.ADD_CONSTANT, 2);
-        m_code.Add(Opcodes.MOVE_TO_REGISTER, 0);
-        
-        m_code.Add(Opcodes.JMP, -5);
-        
-        m_code.Add(Opcodes.POP);
-        m_code.Add(Opcodes.LOAD_REGISTER, 0);
-        m_code.Add(Opcodes.POP);
+    IntPtr m_program;
+    int m_programLength;
 
-        m_code.FinalizeCode();
+    private void Start()
+    {
+        /*var program = new[]
+        {
+            new Instruction(Opcodes.PUSH_CONST, LOOP_COUNT),
+            new Instruction(Opcodes.PUSH_CONST, 0L),
+            new Instruction(Opcodes.POP_TO_REG, Registers.R0),
+            
+            new Instruction(Opcodes.REPEAT),
+            new Instruction(Opcodes.ADD_CONST_TO_REG, Registers.R0, 2),
+            new Instruction(Opcodes.REPEAT_END),
+            
+            new Instruction(Opcodes.PUSH_REG, Registers.R0),
+        };   */
+        
+        var program = new[]
+        {
+            new Instruction(Opcodes.PUSH_CONST, 0L),
+            new Instruction(Opcodes.PUSH_CONST, 1L),
+            new Instruction(Opcodes.POP_TO_REG, Registers.R1),
+            new Instruction(Opcodes.POP_TO_REG, Registers.R2),
+            
+            new Instruction(Opcodes.REPEAT_CONST, LOOP_COUNT),
+            
+            new Instruction(Opcodes.ADD_REG_TO_REG, Registers.R1, Registers.R2),
+            new Instruction(Opcodes.SWAP_REG_REG, Registers.R2, Registers.R1),
+            
+            new Instruction(Opcodes.REPEAT_END),
+            new Instruction(Opcodes.PUSH_REG, Registers.R1),
+        };
+
+        m_program = Interoperability.CreateProgramFunc(program, program.Length);
+
     }
 
     void Update()
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            m_program.Stack.IP = 0;
-            m_program.RunFinalized();
-            Debug.Log(m_program.Stack.Operand);
+            Profiler.BeginSample("CScript C++");
+            long res = Interoperability.ExecuteProgramFunc(m_program);
+            Profiler.EndSample();
+
+            Debug.Log(res);
+            
+            Profiler.BeginSample("CScript C#");
+            
+            /*long r0 = 0;
+
+            for (int i = 0; i < LOOP_COUNT; i++)
+            {
+                r0 += 2;
+            }  */
+            long r1 = 1;
+            long r2 = 0;
+            long r0 = 0;
+            
+            for (int i = 0; i < LOOP_COUNT; i++)
+            {
+                r0 = r1 + r2;
+                r2 = r1;
+                r1 = r0;
+            }
+            
+            Profiler.EndSample();   
+            Debug.Log(r0);
         }
+    }
+
+    private void OnDestroy()
+    {
+        Interoperability.FreeProgramFunc(m_program);
     }
 }

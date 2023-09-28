@@ -1,0 +1,5 @@
+C:\wkspaces\cscript\Interpreter\dllmain.cpp;C:\wkspaces\cscript\Interpreter\x64\Release\dllmain.obj
+C:\wkspaces\cscript\Interpreter\FlowOperations.cpp;C:\wkspaces\cscript\Interpreter\x64\Release\FlowOperations.obj
+C:\wkspaces\cscript\Interpreter\MathOperations.cpp;C:\wkspaces\cscript\Interpreter\x64\Release\MathOperations.obj
+C:\wkspaces\cscript\Interpreter\pch.cpp;C:\wkspaces\cscript\Interpreter\x64\Release\pch.obj
+C:\wkspaces\cscript\Interpreter\StackOperations.cpp;C:\wkspaces\cscript\Interpreter\x64\Release\StackOperations.obj

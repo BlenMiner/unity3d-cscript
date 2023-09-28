@@ -1,7 +1,10 @@
 {
     "name": "CScript.Interpreter",
     "rootNamespace": "",
-    "references": ["GUID:53439afceabb07c41b21c7fb312948e0"],
+    "references": [
+        "GUID:53439afceabb07c41b21c7fb312948e0",
+        "GUID:4726b91a66a9060438ad9e1403f8d2cd"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,

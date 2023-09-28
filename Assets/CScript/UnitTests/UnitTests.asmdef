@@ -4,8 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "CScriptCompiler",
-        "CScript.Interpreter"
+        "CScript.Interpreter",
+        "CScript.Native"
     ],
     "includePlatforms": [
         "Editor"
