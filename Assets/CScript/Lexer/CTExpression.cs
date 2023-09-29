@@ -38,9 +38,8 @@ public class CTExpression : CTNode
         return 0;
     }
     
-    public static CTNodeResponse Parse(CScript script, int i)
+    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
     {
-        var tokens = script.Tokens;
         var valueStack = new Stack<CTNode>();
         var operatorStack = new Stack<CToken>();
 
@@ -64,9 +63,9 @@ public class CTExpression : CTNode
                 case CTokenType.NUMBER:
                 case CTokenType.WORD:
                     if (wasOperator == false)
-                        throw new CScriptException(token, $"Missing operator for '{token.Span}'.");
+                        throw new CTLexerException(token, $"Missing operator for '{token.Span}'.");
                     
-                    valueStack.Push(new CTNodeValue(token));
+                    valueStack.Push(new CTConstValue(token));
                     wasOperator = false;
                     break;
                 
@@ -129,12 +128,12 @@ public class CTExpression : CTNode
                         operatorStack.Pop();  // Remove the '('
                     else
                     {
-                        throw new CScriptException(token, "Missing '(' for the ')'.");
+                        throw new CTLexerException(token, "Missing '(' for the ')'.");
                     }
                     
                     wasOperator = false;
                     break;
-                default: throw new CScriptException(token, $"Unexpected token '{token.Span}' in expression.");
+                default: throw new CTLexerException(token, $"Unexpected token '{token.Span}' in expression.");
             }
             
             i++;
@@ -146,13 +145,13 @@ public class CTExpression : CTNode
         
         switch (valueStack.Count)
         {
-            case 0: throw new CScriptException(tokens[i - 1], "Invalid expression");
+            case 0: throw new CTLexerException(tokens[i - 1], "Invalid expression");
             case > 1:
             {
                 var a = DebugLogNode(valueStack.Pop());
                 var b = DebugLogNode(valueStack.Pop());
 
-                throw new CScriptException(tokens[i - 1], 
+                throw new CTLexerException(tokens[i - 1], 
                     $"Missing operator <color=white>{b}</color> <b><color=cyan>?</color></b> <color=white>{a}</color>");
             }
         }
@@ -160,7 +159,7 @@ public class CTExpression : CTNode
         var tree = valueStack.Pop();
         var node = new CTExpression(tree);
         
-        Debug.Log(DebugLogNode(tree));
+        // Debug.Log(DebugLogNode(tree));
         
         return new CTNodeResponse(node, i);
     }
@@ -171,7 +170,7 @@ public class CTExpression : CTNode
 
         if (valueStack.Count <= 1)
         {
-            throw new CScriptException(op,
+            throw new CTLexerException(op,
                 $"Missing left & right hand values for the operator '{op.Span.Content}'.");
         }
         
@@ -181,14 +180,14 @@ public class CTExpression : CTNode
         switch (right)
         {
             case CTNodeEmpty when left is CTNodeEmpty:
-                throw new CScriptException(op,
+                throw new CTLexerException(op,
                     $"Missing left & right hand values for the operator '{op.Span.Content}'.");
             case CTNodeEmpty:
-                throw new CScriptException(op,
+                throw new CTLexerException(op,
                     $"Missing left hand value for the operator '{op.Span.Content}'.");
         }
 
-        var operatorNode = new CTNodeOperator(op, left, right);
+        var operatorNode = new CTOperator(op, left, right);
 
         valueStack.Push(operatorNode);
         return true;
@@ -200,7 +199,7 @@ public class CTExpression : CTNode
 
         switch (node)
         {
-            case CTNodeOperator op:
+            case CTOperator op:
                 int currentPriority = TokenPriority(op.Operator);
 
                 // Check if the current operation is part of a multiplication chain
@@ -231,7 +230,7 @@ public class CTExpression : CTNode
             
                 break;
 
-            case CTNodeValue value:
+            case CTConstValue value:
                 str += value.Token.Span.Content;
                 break;
             // Include other cases like CTNodeFunctionCall, CTNodeEmpty, etc.

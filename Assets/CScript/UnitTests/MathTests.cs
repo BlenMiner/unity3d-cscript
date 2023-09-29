@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using CScript.Native;
+using Riten.CScript.Native;
 
 namespace CScript.UnitTests
 {

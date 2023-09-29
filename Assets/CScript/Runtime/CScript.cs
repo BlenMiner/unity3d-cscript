@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Riten.CScript.Native;
+using Riten.CScript.Runtime;
 
 [Serializable]
 public class CScript : ScriptableObject
@@ -10,9 +12,8 @@ public class CScript : ScriptableObject
     [SerializeField] string m_savePath;
     [SerializeField] string m_dynamicUID;
     [SerializeField] CTLexer m_lexer = new ();
+    [SerializeField] Instruction[] m_compiled;
 
-    public List<CScriptException> Errors { get; private set; } = new();
-    
     CTRoot m_rootNode;
 
     public string SourceCode
@@ -64,14 +65,18 @@ public class CScript : ScriptableObject
         m_lexer.Parse(m_CScriptSourceCode);
 
         ParseRootNode();
+        Compile();
     }
 
     private void ParseRootNode()
     {
-        Errors.Clear();
-        
         m_rootNode ??= new CTRoot();
-        m_rootNode.Parse(this);
+        m_rootNode.Parse(m_lexer.Tokens);
+    }
+
+    private void Compile()
+    {
+        m_compiled = CTCompiler.Compile(m_rootNode);
     }
 }
 

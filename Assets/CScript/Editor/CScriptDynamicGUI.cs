@@ -23,7 +23,7 @@ public class CScriptDynamicGUI : PropertyDrawer
             return base.GetPropertyHeight(property, label);
 
         return (base.GetPropertyHeight(property, label) - 3) * Mathf.Max(1, script.LineCount) + 
-               (CScriptField.BOTTOM_MARGIN * (script.Errors.Count > 0 ? 1 : 0));
+               (CScriptField.BOTTOM_MARGIN * (script.RootNode != null && script.RootNode.Errors.Count > 0 ? 1 : 0));
     }
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

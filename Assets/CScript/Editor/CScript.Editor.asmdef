@@ -2,7 +2,9 @@
     "name": "CScript.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:0ffc6b7c05a9c194c87fcbff6bf4b489"
+        "GUID:0ffc6b7c05a9c194c87fcbff6bf4b489",
+        "GUID:4726b91a66a9060438ad9e1403f8d2cd",
+        "GUID:4284c1882dd12804c9d07988840683f7"
     ],
     "includePlatforms": [
         "Editor"

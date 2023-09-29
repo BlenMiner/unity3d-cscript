@@ -1,5 +1,5 @@
 using System;
-using CScript.Native;
+using Riten.CScript.Native;
 using UnityEngine;
 using UnityEngine.Profiling;
 

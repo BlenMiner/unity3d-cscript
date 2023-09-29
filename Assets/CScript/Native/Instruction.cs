@@ -1,8 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace CScript.Native
+namespace Riten.CScript.Native
 {
+    [System.Serializable]
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -18,8 +19,8 @@ namespace CScript.Native
         {
             Opcode = (int)opcode;
             Operand = default;
-            Reg = default;
-            Reg2 = default;
+            Reg = -1;
+            Reg2 = -1;
             Operand2 = default;
         }
         
@@ -27,8 +28,8 @@ namespace CScript.Native
         {
             Opcode = (int)opcode;
             Operand = operand;
-            Reg = default;
-            Reg2 = default;
+            Reg = -1;
+            Reg2 = -1;
             Operand2 = default;
         }
         
@@ -37,7 +38,7 @@ namespace CScript.Native
             Opcode = (int)opcode;
             Operand = default;
             Reg = (int)register;
-            Reg2 = default;
+            Reg2 = -1;
             Operand2 = default;
         }
         

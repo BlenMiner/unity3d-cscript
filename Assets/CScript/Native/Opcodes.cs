@@ -1,4 +1,4 @@
-﻿namespace CScript.Native
+﻿namespace Riten.CScript.Native
 {
     public enum Opcodes : int
     {

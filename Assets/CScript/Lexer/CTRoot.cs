@@ -6,6 +6,8 @@ public class CTRoot : CTNode
 {
     protected List<CTNode> m_children = new ();
     
+    public List<CTLexerException> Errors { get; private set; } = new();
+    
     public IReadOnlyList<CTNode> Children => m_children;
 
     public CTRoot() : base(CTNodeType.Root) {}
@@ -17,52 +19,52 @@ public class CTRoot : CTNode
         CTokenType.LEFT_PARENTHESES
     };
     
-    public void Parse(CScript script)
+    public void Parse(IReadOnlyList<CToken> tokens)
     {
         m_children.Clear();
         
         int index = 0;
 
-        while (index < script.Tokens.Count)
+        while (index < tokens.Count)
         {
-            if (script.Tokens[index].Type == CTokenType.SEMICOLON)
+            if (tokens[index].Type == CTokenType.SEMICOLON)
             {
                 index++;
                 continue;
             }
             
-            if (MatchSignature(script, index, FUNCTION_SIG))
+            if (MatchSignature(tokens, index, FUNCTION_SIG))
             {
-                Add(script, CTFunctionDeclaration.Parse, ref index);
+                Add(tokens, CTFunctionDeclaration.Parse, ref index);
             }
             else
             {
-                Add(script, CTExpression.Parse, ref index);
+                Add(tokens, CTExpression.Parse, ref index);
             }
         }
     }
 
-    private void Add(CScript script, Func<CScript, int, CTNodeResponse> parser, ref int index)
+    private void Add(IReadOnlyList<CToken> tokens, Func<IReadOnlyList<CToken>, int, CTNodeResponse> parser, ref int index)
     {
         try
         {
-            var response = parser(script, index);
+            var response = parser(tokens, index);
             m_children.Add(response.Node);
             index = response.Index;
         }
-        catch (CScriptException ex)
+        catch (CTLexerException ex)
         {
-            script.Errors.Add(ex);
-            index = SkipUntilSemicolon(script, index);
+            Errors.Add(ex);
+            index = SkipUntilSemicolon(tokens, index);
         }
     }
     
-    private bool MatchSignature(CScript script, int index, IReadOnlyList<CTokenType> types)
+    private bool MatchSignature(IReadOnlyList<CToken> tokens, int index, IReadOnlyList<CTokenType> types)
     {
-        if (index >= script.Tokens.Count)
+        if (index >= tokens.Count)
             return false;
 
-        if (script.Tokens.Count - index < types.Count)
+        if (tokens.Count - index < types.Count)
             return false;
 
         for (var i = 0; i < types.Count; i++)
@@ -71,16 +73,16 @@ public class CTRoot : CTNode
             
             if (type == CTokenType.NULL) continue;
             
-            if (script.Tokens[index + i].Type != type)
+            if (tokens[index + i].Type != type)
                 return false;
         }
 
         return true;
     }
 
-    private static int SkipUntilSemicolon(CScript script, int index)
+    private static int SkipUntilSemicolon(IReadOnlyList<CToken> tokens, int index)
     {
-        while (index < script.Tokens.Count && script.Tokens[index].Type != CTokenType.SEMICOLON)
+        while (index < tokens.Count && tokens[index].Type != CTokenType.SEMICOLON)
             index++;
 
         index++;

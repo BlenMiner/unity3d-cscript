@@ -26,9 +26,8 @@ public class CTArgumentsDeclaration : CTNode
         EndParenthesis = endParenthesis;
     }
     
-    public static CTNodeResponse Parse(CScript script, int i)
+    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
     {
-        var tokens = script.Tokens;
         var arguments = new List<CTArgumentDeclaration>();
         
         bool expectingIdentifier = false;
@@ -38,7 +37,7 @@ public class CTArgumentsDeclaration : CTNode
         var startParenthesis = tokens[i++];
         
         if (startParenthesis.Type != CTokenType.LEFT_PARENTHESES)
-            throw new CScriptException(tokens[i], $"Expected left parenthesis, got '{startParenthesis.Span}'.");
+            throw new CTLexerException(tokens[i], $"Expected left parenthesis, got '{startParenthesis.Span}'.");
         
         while (i < tokens.Count)
         {
@@ -50,7 +49,7 @@ public class CTArgumentsDeclaration : CTNode
                 
                 if (last.Type == CTokenType.COMMA)
                 {
-                    throw new CScriptException(last,
+                    throw new CTLexerException(last,
                         $"Unexpected token '{last.Span}' in argument declaration.",
                         "Commans should be placed between arguments only."
                     );
@@ -58,7 +57,7 @@ public class CTArgumentsDeclaration : CTNode
                 
                 if (expectingIdentifier)
                 {
-                    throw  new CScriptException(token,
+                    throw  new CTLexerException(token,
                         $"Unexpected token '{token.Span}' in argument declaration.",
                         "Expected identifier."
                     );
@@ -72,7 +71,7 @@ public class CTArgumentsDeclaration : CTNode
                 {
                     if (expectingIdentifier)
                     {
-                        throw new CScriptException(token,
+                        throw new CTLexerException(token,
                             $"Unexpected token '{token.Span}' in argument declaration.",
                             "Expected identifier."
                         );
@@ -80,7 +79,7 @@ public class CTArgumentsDeclaration : CTNode
                     
                     if (!expectingComma)
                     {
-                        throw new CScriptException(token,
+                        throw new CTLexerException(token,
                             $"Badly placed comma '{token.Span}' in argument declaration.",
                             "Commans should be placed between arguments only."
                         );    
@@ -93,7 +92,7 @@ public class CTArgumentsDeclaration : CTNode
                 {
                     if (expectingComma)
                     {
-                        throw new CScriptException(token,
+                        throw new CTLexerException(token,
                             $"Unexpected token '{token.Span}' in argument declaration.",
                             "You need to separate arguments with a comma."
                         );
@@ -113,17 +112,17 @@ public class CTArgumentsDeclaration : CTNode
                     break;
                 }
                 default:
-                    throw new CScriptException(token, $"Invalid token '{token.Span}' in argument declaration.");
+                    throw new CTLexerException(token, $"Invalid token '{token.Span}' in argument declaration.");
             }
             
             i++;
         }
         
         if (expectingIdentifier)
-            throw new CScriptException(default, "Missing argument identifier.");
+            throw new CTLexerException(default, "Missing argument identifier.");
         
         if (i >= tokens.Count)
-            throw new CScriptException(default, "Expected right parenthesis, got end of file.");
+            throw new CTLexerException(default, "Expected right parenthesis, got end of file.");
         
         var endParentheis = tokens[i++];
         
@@ -139,27 +138,25 @@ public class CTFunctionDeclaration : CTNode
     
     public CTFunctionDeclaration(CToken type, CToken name, CTArgumentsDeclaration args) : base(CTNodeType.FunctionDeclaration) { }
 
-    public static CTNodeResponse Parse(CScript script, int i)
+    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
     {
-        var tokens = script.Tokens;
-        
         var functionType = tokens[i++];
         
         if (functionType.Type != CTokenType.WORD)
-            throw new CScriptException(functionType, $"Expected function type, got '{functionType.Span}'.");
+            throw new CTLexerException(functionType, $"Expected function type, got '{functionType.Span}'.");
 
         if (i >= tokens.Count)
-            throw new CScriptException(functionType, "Expected function name, got end of file.");
+            throw new CTLexerException(functionType, "Expected function name, got end of file.");
                 
         var functionName = tokens[i++];
         
         if (functionName.Type != CTokenType.WORD)
-            throw new CScriptException(functionName, $"Expected function name, got '{functionName.Span}'.");
+            throw new CTLexerException(functionName, $"Expected function name, got '{functionName.Span}'.");
 
         if (i >= tokens.Count)
-            throw new CScriptException(functionName, "Expected function body, got end of file.");
+            throw new CTLexerException(functionName, "Expected function body, got end of file.");
 
-        var arguments = CTArgumentsDeclaration.Parse(script, i);
+        var arguments = CTArgumentsDeclaration.Parse(tokens, i);
         
         return new CTNodeResponse(new CTFunctionDeclaration(
             functionType, 

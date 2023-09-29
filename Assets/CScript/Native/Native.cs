@@ -7,7 +7,7 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace CScript.Native
+namespace Riten.CScript.Native
 {
     public static class Native
     {
