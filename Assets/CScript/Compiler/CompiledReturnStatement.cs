@@ -9,11 +9,11 @@ namespace Riten.CScript.Compiler
         public readonly Scope Scope;
         public readonly CompiledExpression Expression;
         
-        public CompiledReturnStatement(CTCompiler compiler, Scope scope, CTReturnStatement node) : base(compiler)
+        public CompiledReturnStatement(CTCompiler compiler, Scope scope, CTReturnStatement node, int level) : base(compiler)
         {
             Scope = scope;
             
-            Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression);
+            Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
             
             Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, (long)0));
 

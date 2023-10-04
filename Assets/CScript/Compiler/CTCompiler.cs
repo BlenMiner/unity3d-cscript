@@ -23,12 +23,10 @@ namespace Riten.CScript.Compiler
         public readonly bool CanAccessParentScope;
         public readonly Scope ParentScope;
 
-        private int m_stackPtrOffset = 0;
-        public readonly CTCompiler Compiler;
+        private int m_stackPtrOffset;
 
         public Scope(CTCompiler compiler, Scope parent, bool canAccessParentScope)
         {
-            Compiler = compiler;
             compiler.AllScopes.Add(this);
             ParentScope = parent;
             CanAccessParentScope = canAccessParentScope;
@@ -44,7 +42,7 @@ namespace Riten.CScript.Compiler
             Functions.Add(function.FunctionName, function);
         }
 
-        public int RegisterNewVariable(string name, int stackSize)
+        public int RegisterNewVariable(string name, int stackSize, int level)
         {
             int stackPtr = m_stackPtrOffset;
             LocalVariables.Add(name, new LocalVariableInfo
@@ -59,9 +57,9 @@ namespace Riten.CScript.Compiler
             return stackPtr;
         }
 
-        public LocalVariableInfo ReadVariable(string name)
+        public LocalVariableInfo ReadVariable(string name, int level)
         {
-            if (LocalVariables.TryGetValue(name, out var info))
+            if (LocalVariables.TryGetValue(name, out var info) && info.Level <= level)
             {
                 info.ReadCount++;
                 LocalVariables[name] = info;
@@ -70,7 +68,7 @@ namespace Riten.CScript.Compiler
 
             if (CanAccessParentScope && ParentScope != null)
             {
-                return ParentScope.ReadVariable(name);
+                return ParentScope.ReadVariable(name, level);
             }
 
             throw new Exception($"Unknown variable {name}");
@@ -102,29 +100,32 @@ namespace Riten.CScript.Compiler
             GlobalScope = new Scope(this, null, false);
         }
         
-        public CompiledNode CompileNode(Scope scope, CTNode node)
+        public CompiledNode CompileNode(Scope scope, CTNode node, int level)
         {
             switch (node)
             {
                 case CTExpression expression: 
-                    return new CompiledExpression(this, scope, expression);
+                    return new CompiledExpression(this, scope, expression, level);
                 
                 case CTAssignStatement statement:
-                    return new CompiledAssignStatement(this, scope, statement);
+                    return new CompiledAssignStatement(this, scope, statement, level);
                 
                 case CTDeclareStatement statement: 
-                    return new CompiledDeclareStatement(this, scope, statement);
+                    return new CompiledDeclareStatement(this, scope, statement, level);
                 
                 case CTFunction function:
-                    var fn = new CompiledFunction(this, scope, function);
+                    var fn = new CompiledFunction(this, scope, function, level);
                     scope.RegisterNewFunction(fn);
                     return fn;
                 
                 case CTReturnStatement statement:
-                    return new CompiledReturnStatement(this, scope, statement);
+                    return new CompiledReturnStatement(this, scope, statement, level);
                 
                 case CTRepeatBlockStatement statement:
-                    return new CompiledRepeatStatement(this, scope, statement);
+                    return new CompiledRepeatStatement(this, scope, statement, level);
+                
+                case CTSwapStatement statement:
+                    return new CompiledSwapStatement(this, scope, statement, level);
                 
                 default: throw new NotImplementedException($"Instruction {node.GetType().Name} not implemented");
             }
@@ -135,7 +136,7 @@ namespace Riten.CScript.Compiler
             Instructions.Clear();
 
             for (var i = 0; i < m_root.Children.Count; i++)
-                CompileNode(GlobalScope, m_root.Children[i]);
+                CompileNode(GlobalScope, m_root.Children[i], 0);
 
             CTOptimizer.Optimize(this, Instructions);
             return Instructions.ToArray();

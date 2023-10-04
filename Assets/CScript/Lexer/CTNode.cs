@@ -15,7 +15,8 @@ public enum CTNodeType
     Block,
     AssignStatement,
     ReturnStatement,
-    RepeatStatement
+    RepeatStatement,
+    SWAPStatement
 }
 
 public abstract class CTStatement : CTNode

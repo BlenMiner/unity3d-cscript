@@ -10,7 +10,9 @@ namespace Riten.CScript.Compiler
             new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD),
             new (OptimizePushConstAddConst, Opcodes.PUSH_CONST, Opcodes.ADD_CONST),
             new (OptimizePushConstToSPTR, Opcodes.PUSH_CONST, Opcodes.POP_TO_SPTR),
-            new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.POP_TO_SPTR)
+            new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.POP_TO_SPTR),
+            new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
+            new (Optimize_PushConst_Repeat, Opcodes.PUSH_CONST, Opcodes.REPEAT),
         };
         
         static void OffsetAllPointers(CTCompiler cmp, int pastValue, int offset)
@@ -34,14 +36,40 @@ namespace Riten.CScript.Compiler
             }*/
         }
         
+        static void Optimize_PushConst_Repeat(CTCompiler cmp,List<Instruction> program, int index)
+        {
+            long value = program[index].Operand;
+            program.RemoveRange(index, 2);
+            program.Insert(index, new Instruction(Opcodes.REPEAT_CONST, value));
+            OffsetAllPointers(cmp, index, -1);
+        }
+        
+        static void Optimize_ADD_SPTR_SPTR_To_SPTR(CTCompiler cmp, List<Instruction> program, int index)
+        {
+            long add0 = program[index].Operand;
+            long add1 = program[index + 1].Operand;
+            long to = program[index + 3].Operand;
+             
+            program.RemoveRange(index, 4);
+            program.Insert(index, new Instruction(Opcodes.ADD_SPTR_SPTR_INTO_SPTR, add0, add1, to));
+            
+            OffsetAllPointers(cmp, index, -2);
+        }
+        
         static void OptimizeCopyFromSPRTToSPTR(CTCompiler cmp, List<Instruction> program, int index)
         {
             long from = program[index].Operand;
             long to = program[index + 1].Operand;
-            
+
             program.RemoveRange(index, 2);
-            program.Insert(index, new Instruction(Opcodes.COPY_FROM_SPTR_TO_SPTR, from, to));
+
+            if (from == to)
+            {
+                OffsetAllPointers(cmp, index, -2);
+                return;
+            }
             
+            program.Insert(index, new Instruction(Opcodes.COPY_FROM_SPTR_TO_SPTR, from, to));
             OffsetAllPointers(cmp, index, -1);
         }
         

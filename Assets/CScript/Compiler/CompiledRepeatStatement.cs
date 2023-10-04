@@ -9,16 +9,16 @@ namespace Riten.CScript.Compiler
         public readonly CompiledBlock Body;
         public readonly CTRepeatBlockStatement BlockStatement;
         
-        public CompiledRepeatStatement(CTCompiler comp, Scope scope, CTRepeatBlockStatement node) 
+        public CompiledRepeatStatement(CTCompiler comp, Scope scope, CTRepeatBlockStatement node, int level) 
             : base(comp)
         {
             BlockStatement = node;
 
-            Count = new CompiledExpression(comp, scope, node.Count);
+            Count = new CompiledExpression(comp, scope, node.Count, level);
             // Top of the stack is the count
             comp.Instructions.Add(new Instruction(Opcodes.REPEAT));
             
-            Body = new CompiledBlock(Compiler, new Scope(comp, scope, true), node.BlockStatement);
+            Body = new CompiledBlock(Compiler, new Scope(comp, scope, true), node.BlockStatement, level + 1);
             
             comp.Instructions.Add(new Instruction(Opcodes.REPEAT_END));
         }

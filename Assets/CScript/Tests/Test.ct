@@ -1,14 +1,13 @@
 void test()
 {
-    long a = 0;
-    long b = 1;
+    long R1 = 0;
+    long R2 = 1;
      
     repeat(1000000)
     {
-        long tmp = a;
-        a = b;
-        b = tmp  + b; 
+        R2 = R2 + R1;
+        R1 <=> R2;
     }
 
-    return a; 
-}  
+    return R1;
+} 

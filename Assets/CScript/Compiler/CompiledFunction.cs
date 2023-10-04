@@ -1,5 +1,6 @@
 using Riten.CScript.Lexer;
 using Riten.CScript.Native;
+using UnityEngine;
 
 namespace Riten.CScript.Compiler
 {
@@ -7,6 +8,7 @@ namespace Riten.CScript.Compiler
     {
         public int StackPointer;
         public int StackSize;
+        public int Level;
         public int ReadCount;
         public int WriteCount;
     }
@@ -21,7 +23,7 @@ namespace Riten.CScript.Compiler
         public int LocalDeclarationsSize;
         public int FunctionPtr;
         
-        public CompiledFunction(CTCompiler compiler, Scope scope, CTFunction function)
+        public CompiledFunction(CTCompiler compiler, Scope scope, CTFunction function, int level)
             :base(compiler)
         {
             Function = function;
@@ -29,26 +31,31 @@ namespace Riten.CScript.Compiler
 
             var fnScope = new Scope(compiler, scope, false);
             
-            Compile(compiler, fnScope);
+            Compile(compiler, fnScope, level);
         }
-
-        static void RegisterAllLocalVariables(Scope scope, CTBlockStatement blockStatement)
+        
+        static void RegisterAllLocalVariables(Scope scope, CTStatement statement, int level)
         {
-            foreach (var node in blockStatement.Statements)
+            switch (statement)
             {
-                switch (node)
-                {
-                    case CTDeclareStatement statement:
-                        scope.RegisterNewVariable(statement.Identifier.Span.Content, 1);
-                        break;
-                    case CTBlockStatement childBlock:
-                        RegisterAllLocalVariables(scope, childBlock);
-                        break;
-                }
+                case CTDeclareStatement declare:
+                    scope.RegisterNewVariable(declare.Identifier.Span.Content, 1, level);
+                    break;
+                case CTRepeatBlockStatement repeatBlock:
+                    RegisterAllLocalVariables(scope, repeatBlock.BlockStatement, level + 1);
+                    break;
             }
         }
 
-        void Compile(CTCompiler compiler, Scope scope)
+        static void RegisterAllLocalVariables(Scope scope, CTBlockStatement blockStatement, int level = 0)
+        {
+            foreach (var node in blockStatement.Statements)
+            {
+                RegisterAllLocalVariables(scope, node, level);
+            }
+        }
+
+        void Compile(CTCompiler compiler, Scope scope, int level)
         {
             FunctionPtr = compiler.Instructions.Count;
             
@@ -57,13 +64,7 @@ namespace Riten.CScript.Compiler
             LocalDeclarationsSize = scope.StackSize;
             compiler.Instructions.Add(new Instruction(Opcodes.RESERVE, LocalDeclarationsSize));
 
-            /*for (var i = 0; i < Function.Block.Statements.Length; i++)
-            {
-                var node = Function.Block.Statements[i];
-                CompiledBody.Add(compiler.CompileNode(scope, node));
-            }*/
-            
-            Body = new CompiledBlock(compiler, scope, Function.BlockStatement);
+            Body = new CompiledBlock(compiler, scope, Function.BlockStatement, level);
 
             compiler.Instructions.Add(new Instruction(Opcodes.DISCARD, LocalDeclarationsSize));
             compiler.Instructions.Add(new Instruction(Opcodes.RETURN));

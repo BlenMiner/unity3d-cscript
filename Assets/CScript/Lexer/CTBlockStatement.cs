@@ -25,6 +25,13 @@ namespace Riten.CScript.Lexer
             CTokenType.EQUALS
         };
         
+        public static readonly CTokenType[] SWAP_STATEMENT_SIG =
+        {
+            CTokenType.WORD,
+            CTokenType.SWAP,
+            CTokenType.WORD
+        };
+        
         public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
         {
             var statements = new List<CTStatement>();
@@ -93,6 +100,12 @@ namespace Riten.CScript.Lexer
                     else if (CTRoot.MatchSignature(tokens, i, ASSIGN_STATEMENT_SIG))
                     {
                         var statement = CTAssignStatement.Parse(tokens, i);
+                        statements.Add(statement.Node as CTStatement);
+                        i = statement.Index;
+                    }
+                    else if (CTRoot.MatchSignature(tokens, i, SWAP_STATEMENT_SIG))
+                    {
+                        var statement = CTSwapStatement.Parse(tokens, i);
                         statements.Add(statement.Node as CTStatement);
                         i = statement.Index;
                     }

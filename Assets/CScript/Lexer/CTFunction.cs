@@ -136,7 +136,7 @@ public class CTFunction : CTNode
     public CToken FunctionType;
     public CToken FunctionName;
     public CTArgumentsDeclaration Arguments;
-    public CTBlockStatement BlockStatement;
+    public readonly CTBlockStatement BlockStatement;
 
     public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement) : base(CTNodeType
         .FunctionDeclaration)

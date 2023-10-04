@@ -32,7 +32,8 @@ public enum CTokenType
     BOOLEAN_NOT,
     EQUALS,
     EQUALS_EQUALS,
-    REPEAT
+    REPEAT,
+    SWAP
 }
 
 [Serializable]
@@ -309,6 +310,16 @@ public class CTLexer
                     });
 
                     end += 2;
+                }
+                else if (end + 1 < source.Length && source[end + 1] == '=' && end + 2 < source.Length && source[end + 2] == '>')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.SWAP,
+                        Span = source.ToCSpan(start, end + 3),
+                    });
+
+                    end += 3;
                 }
                 else
                 {

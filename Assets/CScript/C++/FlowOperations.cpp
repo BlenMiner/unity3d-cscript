@@ -3,15 +3,15 @@
 #include "Main.h"
 #include <vector>
 
-OPCODE_DEFINITION(JMP)				{ stack->IP += context.operand - 1; }
-OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	{ if (stack->PEEK() == 0) stack->IP += context.operand - 1; }
+OPCODE_DEFINITION(JMP)				{ stack->IP += context.operand1 - 1; }
+OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	{ if (stack->PEEK() == 0) stack->IP += context.operand1 - 1; }
 
 OPCODE_DEFINITION(CALL)
 {
 	stack->PUSH(stack->SCOPE_SP);
 	stack->PUSH(stack->IP);
 
-	stack->IP = context.operand;
+	stack->IP = context.operand1;
 	stack->SCOPE_SP = stack->SP;
 }
 
@@ -35,7 +35,7 @@ OPCODE_DEFINITION(RETURN)
 
 OPCODE_DEFINITION(REPEAT_CONST)
 {
-	long long loopTimes = context.operand;
+	long long loopTimes = context.operand1;
 
 	long long loopStart = stack->IP;
 	long long loopEnd = loopStart + 1;
@@ -78,5 +78,5 @@ OPCODE_DEFINITION(REPEAT_END) {}
 
 OPCODE_DEFINITION(REPEAT_SPTR)
 {
-	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->data[stack->SCOPE_SP + context.operand] });
+	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->data[stack->SCOPE_SP + context.operand1] });
 }

@@ -10,13 +10,13 @@ namespace Riten.CScript.Compiler
         public readonly Scope Scope;
         public long StackSize;
         
-        public CompiledExpression(CTCompiler compiler, Scope scope, CTExpression expressionNode)
+        public CompiledExpression(CTCompiler compiler, Scope scope, CTExpression expressionNode, int level)
             :base(compiler)
         {
             ExpressionNode = expressionNode;
             Scope = scope;
             
-            CompileExpression(ExpressionNode.TreeRoot);
+            CompileExpression(ExpressionNode.TreeRoot, level);
 
             StackSize = 1;
         }
@@ -56,7 +56,7 @@ namespace Riten.CScript.Compiler
             }
         }
         
-        void CompileExpression(CTNode node)
+        void CompileExpression(CTNode node, int level)
         {
             switch (node)
             {
@@ -65,8 +65,8 @@ namespace Riten.CScript.Compiler
                     bool unary = op.Left is CTNodeEmpty;
                     if (!unary)
                     {
-                        CompileExpression(op.Left);
-                        CompileExpression(op.Right);
+                        CompileExpression(op.Left, level);
+                        CompileExpression(op.Right, level);
                         CompileOperator(op);
                     }
                     else
@@ -79,7 +79,7 @@ namespace Riten.CScript.Compiler
                     Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, value));
                     break;
                 case CTVariable var:
-                    var variable = Scope.ReadVariable(var.Identifier.Span.Content);
+                    var variable = Scope.ReadVariable(var.Identifier.Span.Content, level);
                     Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_FROM_SPTR, variable.StackPointer));
                     break;
                 default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression.");

@@ -13,6 +13,7 @@
 	OPCODE(ADD)\
     OPCODE(ADD_CONST)\
     OPCODE(ADD_CONST_TO_SPTR)\
+    OPCODE(ADD_SPTR_SPTR_INTO_SPTR)\
 	\
     OPCODE(PUSH_CONST) \
     OPCODE(PUSH_FROM_SPTR) \
@@ -24,6 +25,7 @@
     OPCODE(DISCARD) \
     \
     OPCODE(DUP)\
+    OPCODE(SWAP_SPTR_SPTR)\
 	\
 	OPCODE(REPEAT)\
 	OPCODE(REPEAT_CONST)\
@@ -46,7 +48,7 @@ struct Instruction
 	Instruction() 
 	{
 		opcode = -1;
-		operand = 0;
+		operand1 = 0;
 		operand2 = 0;
 		operand3 = 0;
 		operand4 = 0;
@@ -55,7 +57,7 @@ struct Instruction
 	Instruction(Opcodes instruction)
 	{
 		this->opcode = instruction;
-		this->operand = 0;
+		this->operand1 = 0;
 		this->operand2 = 0;
 		this->operand3 = 0;
 		this->operand4 = 0;
@@ -64,7 +66,7 @@ struct Instruction
 	Instruction(Opcodes instruction, long long operand)
 	{
 		this->opcode = instruction;
-		this->operand = operand;
+		this->operand1 = operand;
 		this->operand2 = 0;
 		this->operand3 = 0;
 		this->operand4 = 0;
@@ -73,7 +75,7 @@ struct Instruction
 	Instruction(Opcodes instruction, long long operandA, long long operandB)
 	{
 		this->opcode = instruction;
-		this->operand = operandA;
+		this->operand1 = operandA;
 		this->operand2 = operandB;
 		this->operand3 = 0;
 		this->operand4 = 0;
@@ -82,7 +84,7 @@ struct Instruction
 	Instruction(Opcodes instruction, long long operandA, long long operandB, long long operandC)
 	{
 		this->opcode = instruction;
-		this->operand = operandA;
+		this->operand1 = operandA;
 		this->operand2 = operandB;
 		this->operand3 = 0;
 		this->operand4 = 0;
@@ -91,14 +93,14 @@ struct Instruction
 	Instruction(Opcodes instruction, long long operandA, long long operandB, long long operandC, long long operandD)
 	{
 		this->opcode = instruction;
-		this->operand = operandA;
+		this->operand1 = operandA;
 		this->operand2 = operandB;
 		this->operand3 = operandC;
 		this->operand4 = operandD;
 	}
 
 	int opcode;
-	long long operand;
+	long long operand1;
 	long long operand2;
 	long long operand3;
 	long long operand4;

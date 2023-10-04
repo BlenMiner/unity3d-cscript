@@ -28,7 +28,18 @@ public class Bruh : MonoBehaviour
             Debug.Log(res);
 
             Profiler.BeginSample("CScript C#");
-            long r1 = 1;
+            
+            long a = 0;
+            long b = 1;
+     
+            for (int i = 0; i < 1000000; ++i)
+            {
+                long tmp = a;
+                a = b;
+                b = tmp  + b;  
+            } 
+
+            /*long r1 = 1;
             long r2 = 0;
             long r0 = 0;
             
@@ -37,9 +48,9 @@ public class Bruh : MonoBehaviour
                 r0 = r1 + r2;
                 r2 = r1;
                 r1 = r0;
-            }
+            }*/
             Profiler.EndSample();   
-            Debug.Log(r0);
+            Debug.Log(a);
 
         }
     }

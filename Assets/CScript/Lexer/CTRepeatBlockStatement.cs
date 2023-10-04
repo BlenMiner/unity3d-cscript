@@ -4,9 +4,9 @@ namespace Riten.CScript.Lexer
 {
     public class CTRepeatBlockStatement : CTStatement
     {
-        public CToken RepeatToken;
-        public CTBlockStatement BlockStatement;
-        public CTExpression Count;
+        public readonly CToken RepeatToken;
+        public readonly CTBlockStatement BlockStatement;
+        public readonly CTExpression Count;
         
         public CTRepeatBlockStatement(CToken repeatToken, CTExpression count, CTBlockStatement blockStatement) : base(CTNodeType.RepeatStatement)
         {

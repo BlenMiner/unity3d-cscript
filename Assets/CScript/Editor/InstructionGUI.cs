@@ -12,6 +12,7 @@ namespace Riten.CScript.Editor
             var opcode = (Opcodes)property.FindPropertyRelative("Opcode").intValue;
             var operand = property.FindPropertyRelative("Operand").longValue;
             var operand2 = property.FindPropertyRelative("Operand2").intValue;
+            var operand3 = property.FindPropertyRelative("Operand3").intValue;
             
             string content = opcode.ToString();
             
@@ -24,11 +25,18 @@ namespace Riten.CScript.Editor
             
             content += ", " + operand;
 
-            if (opcode is Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR)
+            switch (opcode)
             {
-                content += ", " + operand2;
+                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR:
+                    content += ", " + operand2;
+                    break;
+                
+                case Opcodes.ADD_SPTR_SPTR_INTO_SPTR:
+                    content += ", " + operand2;
+                    content += ", " + operand3;
+                    break;
             }
-            
+
             GUI.Label(position, content);
         }
     }
