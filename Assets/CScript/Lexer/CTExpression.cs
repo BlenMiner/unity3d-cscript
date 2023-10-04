@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
+using Riten.CScript.Lexer;
 
 public struct CTNodeResponse
 {
@@ -47,12 +47,19 @@ public class CTExpression : CTNode
         operatorStack.Clear();
         
         bool wasOperator = true;
+        int parenthesisCount = 0;
         
         while (i < tokens.Count)
         {
             var token = tokens[i];
             
             if (token.Type == CTokenType.SEMICOLON)
+            {
+                i++;
+                break;
+            }
+
+            if (token.Type == CTokenType.RIGHT_PARENTHESES && parenthesisCount == 0)
             {
                 i++;
                 break;
@@ -65,7 +72,14 @@ public class CTExpression : CTNode
                     if (wasOperator == false)
                         throw new CTLexerException(token, $"Missing operator for '{token.Span}'.");
                     
-                    valueStack.Push(new CTConstValue(token));
+                    CTNode nodeV = token.Type switch
+                    {
+                        CTokenType.NUMBER => new CTConstValue(token),
+                        CTokenType.WORD => new CTVariable(token),
+                        _ => throw new CTLexerException(token, $"Unexpected token '{token.Span}'.")
+                    };
+                    
+                    valueStack.Push(nodeV);
                     wasOperator = false;
                     break;
                 
@@ -106,12 +120,13 @@ public class CTExpression : CTNode
                     break;
                 
                 case CTokenType.LEFT_PARENTHESES:
+                    parenthesisCount++;
                     operatorStack.Push(token);
                     wasOperator = true;
                     break;
                 
                 case CTokenType.RIGHT_PARENTHESES:
-                    
+                    parenthesisCount--;
                     if (wasOperator)
                     {
                         valueStack.Push(new CTNodeEmpty());

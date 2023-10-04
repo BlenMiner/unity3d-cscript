@@ -7,27 +7,31 @@
 #define OPCODE_LIST \
     OPCODE(JMP_IF_TOP_ZERO)\
     OPCODE(JMP)\
+    OPCODE(CALL)\
+    OPCODE(RETURN)\
 	\
 	OPCODE(ADD)\
     OPCODE(ADD_CONST)\
-    OPCODE(ADD_CONST_TO_REG)\
-    OPCODE(ADD_REG_TO_REG)\
-	\
-    OPCODE(COPY_REG_TO_REG)\
-    OPCODE(SWAP_REG_REG)\
+    OPCODE(ADD_CONST_TO_SPTR)\
 	\
     OPCODE(PUSH_CONST) \
-    OPCODE(PUSH_REG) \
+    OPCODE(PUSH_FROM_SPTR) \
+    OPCODE(PUSH_CONST_TO_SPTR) \
     \
     OPCODE(POP) \
-    OPCODE(POP_TO_REG) \
+    OPCODE(POP_TO_SPTR) \
+    OPCODE(RESERVE) \
+    OPCODE(DISCARD) \
     \
     OPCODE(DUP)\
 	\
 	OPCODE(REPEAT)\
 	OPCODE(REPEAT_CONST)\
-	OPCODE(REPEAT_REG)\
+	OPCODE(REPEAT_SPTR)\
 	OPCODE(REPEAT_END)\
+	\
+    OPCODE(COPY_FROM_SPTR_TO_SPTR) \
+
 
 #define OPCODE(x) x,
 enum Opcodes : int
@@ -37,20 +41,6 @@ enum Opcodes : int
 };
 #undef OPCODE
 
-enum Registers : int
-{
-	R0 = 0,
-	R1,
-	R2,
-	R3,
-	R4,
-	R5,
-	R6,
-	R7,
-	R8,
-	R9,
-};
-
 struct Instruction
 {
 	Instruction() 
@@ -58,8 +48,8 @@ struct Instruction
 		opcode = -1;
 		operand = 0;
 		operand2 = 0;
-		reg = Registers::R0;
-		reg2 = Registers::R0;
+		operand3 = 0;
+		operand4 = 0;
 	}
 
 	Instruction(Opcodes instruction)
@@ -67,8 +57,8 @@ struct Instruction
 		this->opcode = instruction;
 		this->operand = 0;
 		this->operand2 = 0;
-		this->reg = Registers::R0;
-		this->reg2 = Registers::R0;
+		this->operand3 = 0;
+		this->operand4 = 0;
 	}
 
 	Instruction(Opcodes instruction, long long operand)
@@ -76,35 +66,8 @@ struct Instruction
 		this->opcode = instruction;
 		this->operand = operand;
 		this->operand2 = 0;
-		this->reg = Registers::R0;
-		this->reg2 = Registers::R0;
-	}
-
-	Instruction(Opcodes instruction, Registers regA, Registers regB)
-	{
-		this->opcode = instruction;
-		this->operand = 0;
-		this->operand2 = 0;
-		this->reg = regA;
-		this->reg2 = regB;
-	}
-
-	Instruction(Opcodes instruction, Registers regA, long long operand)
-	{
-		this->opcode = instruction;
-		this->operand = operand;
-		this->operand2 = 0;
-		this->reg = regA;
-		this->reg2 = Registers::R0;
-	}
-
-	Instruction(Opcodes instruction, Registers regA)
-	{
-		this->opcode = instruction;
-		this->operand = 0;
-		this->operand2 = 0;
-		this->reg = regA;
-		this->reg2 = Registers::R0;
+		this->operand3 = 0;
+		this->operand4 = 0;
 	}
 
 	Instruction(Opcodes instruction, long long operandA, long long operandB)
@@ -112,15 +75,33 @@ struct Instruction
 		this->opcode = instruction;
 		this->operand = operandA;
 		this->operand2 = operandB;
-		this->reg = Registers::R0;
-		this->reg2 = Registers::R0;
+		this->operand3 = 0;
+		this->operand4 = 0;
+	}
+
+	Instruction(Opcodes instruction, long long operandA, long long operandB, long long operandC)
+	{
+		this->opcode = instruction;
+		this->operand = operandA;
+		this->operand2 = operandB;
+		this->operand3 = 0;
+		this->operand4 = 0;
+	}
+
+	Instruction(Opcodes instruction, long long operandA, long long operandB, long long operandC, long long operandD)
+	{
+		this->opcode = instruction;
+		this->operand = operandA;
+		this->operand2 = operandB;
+		this->operand3 = operandC;
+		this->operand4 = operandD;
 	}
 
 	int opcode;
-	int reg;
-	int reg2;
 	long long operand;
 	long long operand2;
+	long long operand3;
+	long long operand4;
 };
 
 struct Program

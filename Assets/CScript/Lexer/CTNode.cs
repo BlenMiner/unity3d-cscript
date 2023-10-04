@@ -4,11 +4,25 @@ public enum CTNodeType
     NULL,
     Root,
     Expression,
+    DeclareStatement,
     Operator,
     Value,
+    Variable,
     FunctionDeclaration,
     ArgumentsDeclaration,
-    ArgumentDeclaration
+    ArgumentDeclaration,
+    Type,
+    Block,
+    AssignStatement,
+    ReturnStatement,
+    RepeatStatement
+}
+
+public abstract class CTStatement : CTNode
+{
+    protected CTStatement(CTNodeType type) : base(type)
+    {
+    }
 }
 
 public abstract class CTNode

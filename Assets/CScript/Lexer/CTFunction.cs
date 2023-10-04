@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Riten.CScript.Lexer;
 
 public class CTArgumentDeclaration : CTNode
 {
@@ -12,7 +13,7 @@ public class CTArgumentDeclaration : CTNode
     }
 }
 
-public class CTArgumentsDeclaration : CTNode
+public class CTArgumentsDeclaration : CTStatement
 {
     public readonly CToken StartParenthesis;
     public readonly IList<CTArgumentDeclaration> Arguments;
@@ -130,13 +131,21 @@ public class CTArgumentsDeclaration : CTNode
     }
 }
 
-public class CTFunctionDeclaration : CTNode
+public class CTFunction : CTNode
 {
     public CToken FunctionType;
     public CToken FunctionName;
     public CTArgumentsDeclaration Arguments;
-    
-    public CTFunctionDeclaration(CToken type, CToken name, CTArgumentsDeclaration args) : base(CTNodeType.FunctionDeclaration) { }
+    public CTBlockStatement BlockStatement;
+
+    public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement) : base(CTNodeType
+        .FunctionDeclaration)
+    {
+        FunctionType = type;
+        FunctionName = name;
+        Arguments = args;
+        BlockStatement = blockStatement;
+    }
 
     public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
     {
@@ -157,12 +166,20 @@ public class CTFunctionDeclaration : CTNode
             throw new CTLexerException(functionName, "Expected function body, got end of file.");
 
         var arguments = CTArgumentsDeclaration.Parse(tokens, i);
+
+        i = arguments.Index;
         
-        return new CTNodeResponse(new CTFunctionDeclaration(
+        if (i >= tokens.Count)
+            throw new CTLexerException(functionName, "Expected function body, got end of file.");
+        
+        var block = CTBlockStatement.Parse(tokens, i);
+        
+        return new CTNodeResponse(new CTFunction(
             functionType, 
             functionName, 
-            (CTArgumentsDeclaration)arguments.Node), 
-            arguments.Index
+            (CTArgumentsDeclaration)arguments.Node, 
+            (CTBlockStatement)block.Node),
+            block.Index
         );
     }
 }

@@ -67,61 +67,29 @@ long long ExecuteProgram(Program* program)
 	while (stackPtr->IP < length)
 	{
 		Instruction instruction = program->instructions[stackPtr->IP++];
-
-#define OPCODE(x) case x: x##_IMP(program, stackPtr, instruction); break;
-		switch (instruction.opcode)
-		{
-			OPCODE_LIST
-		}
-#undef OPCODE
+		ExecuteInstruction(program, stackPtr, instruction);
 	}
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
 
-
-OPCODE_DEFINITION(REPEAT_CONST)
+long long ExecuteFunction(Program* program, int functionIP)
 {
-	long long loopTimes = context.operand;
+	auto length = program->instructionsCount;
+	Stack* stackPtr = program->stack;
 
-	int loopStart = stack->IP;
-	int loopEnd = loopStart + 1;
+	stackPtr->IP = functionIP;
+	stackPtr->ResetSP();
 
-	while (loopEnd < program->instructionsCount)
+	stackPtr->PUSH(0);
+	stackPtr->PUSH(length);
+	stackPtr->SCOPE_SP = stackPtr->SP;
+
+	while (stackPtr->IP < length)
 	{
-		if (program->instructions[loopEnd].opcode == REPEAT_END)
-		{
-			--loopEnd;
-			break;
-		}
-		
-		loopEnd++;
+		Instruction instruction = program->instructions[stackPtr->IP++];
+		ExecuteInstruction(program, stackPtr, instruction);
 	}
 
-	if (loopTimes == 0)
-	{
-		stack->IP = loopEnd + 2;
-		return;
-	}
-
-	for (int i = 0; i < loopTimes; ++i)
-	{
-		while (stack->IP <= loopEnd) ExecuteInstruction(program, stack, program->instructions[stack->IP++]);
-
-		if (stack->IP == loopEnd + 1)
-			stack->IP = loopStart;
-		else return;
-	}
-
-	stack->IP = loopEnd + 1; 
+	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
-OPCODE_DEFINITION(REPEAT_REG)
-{
-	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->registers[context.reg]});
-}
-OPCODE_DEFINITION(REPEAT)
-{
-	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->POP()});
-}
-
-OPCODE_DEFINITION(REPEAT_END) {}

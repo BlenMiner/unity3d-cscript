@@ -1,0 +1,14 @@
+void test()
+{
+    long a = 0;
+    long b = 1;
+     
+    repeat(1000000)
+    {
+        long tmp = a;
+        a = b;
+        b = tmp  + b; 
+    }
+
+    return a; 
+}  

@@ -6,6 +6,7 @@ using UnityEngine;
 public enum CTokenType
 {
     NULL,
+    RETURN,
     WORD,
     NUMBER,
     PLUS,
@@ -14,6 +15,8 @@ public enum CTokenType
     DIVIDE,
     LEFT_PARENTHESES,
     RIGHT_PARENTHESES,
+    LEFT_BRACE,
+    RIGHT_BRACE,
     SEMICOLON,
     COMMA,
     BIT_SHIFT_LEFT,
@@ -29,6 +32,7 @@ public enum CTokenType
     BOOLEAN_NOT,
     EQUALS,
     EQUALS_EQUALS,
+    REPEAT
 }
 
 [Serializable]
@@ -188,6 +192,24 @@ public class CTLexer
                 m_tokens.Add(new CToken
                 {
                     Type = CTokenType.RIGHT_PARENTHESES,
+                    Span = source.ToCSpan(start, end + 1),
+                });
+
+                end++;
+                break;
+            case '{':
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.LEFT_BRACE,
+                    Span = source.ToCSpan(start, end + 1),
+                });
+
+                end++;
+                break;
+            case '}':
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.RIGHT_BRACE,
                     Span = source.ToCSpan(start, end + 1),
                 });
 
@@ -365,20 +387,20 @@ public class CTLexer
     {
         switch (span.Content)
         {
-            /*case "<<":
+            case "return":
                 m_tokens.Add(new CToken
                 {
-                    Type = CTokenType.BIT_SHIFT_LEFT,
+                    Type = CTokenType.RETURN,
                     Span = span,
                 });
                 break;
-            case ">>":
+            case "repeat":
                 m_tokens.Add(new CToken
                 {
-                    Type = CTokenType.BIT_SHIFT_RIGHT,
+                    Type = CTokenType.REPEAT,
                     Span = span,
                 });
-                break;   */
+                break;
             default:
                 m_tokens.Add(new CToken
                 {

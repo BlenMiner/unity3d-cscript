@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Riten.CScript.Lexer;
 
 [System.Serializable]
 public class CTRoot : CTNode
@@ -18,7 +19,7 @@ public class CTRoot : CTNode
         CTokenType.WORD,
         CTokenType.LEFT_PARENTHESES
     };
-    
+
     public void Parse(IReadOnlyList<CToken> tokens)
     {
         m_children.Clear();
@@ -35,11 +36,12 @@ public class CTRoot : CTNode
             
             if (MatchSignature(tokens, index, FUNCTION_SIG))
             {
-                Add(tokens, CTFunctionDeclaration.Parse, ref index);
+                Add(tokens, CTFunction.Parse, ref index);
             }
             else
             {
-                Add(tokens, CTExpression.Parse, ref index);
+                Errors.Add(new CTLexerException(tokens[index], $"Unexpected token '{tokens[index].Span}' in root scope."));
+                index = SkipUntilSemicolon(tokens, index);
             }
         }
     }
@@ -59,7 +61,7 @@ public class CTRoot : CTNode
         }
     }
     
-    private bool MatchSignature(IReadOnlyList<CToken> tokens, int index, IReadOnlyList<CTokenType> types)
+    public static bool MatchSignature(IReadOnlyList<CToken> tokens, int index, IReadOnlyList<CTokenType> types)
     {
         if (index >= tokens.Count)
             return false;

@@ -1,97 +1,144 @@
 ﻿using System;
 using System.Collections.Generic;
+using Riten.CScript.Lexer;
 using Riten.CScript.Native;
 
-namespace Riten.CScript.Runtime
+namespace Riten.CScript.Compiler
 {
-    public static class CTCompiler
+    public abstract class CompiledNode
     {
-        static readonly List<Instruction> s_instructions = new ();
+        protected readonly CTCompiler Compiler;
 
-        static void Compile(CTExpression expression)
+        protected CompiledNode(CTCompiler compiler)
         {
-            CompileExpression(expression.TreeRoot);
+            Compiler = compiler;
         }
-        
-        static void CompileExpression(CTNode node)
-        {
-            switch (node)
-            {
-                case CTOperator op:
+    }
 
-                    bool unary = op.Left is CTNodeEmpty;
-                    if (!unary)
-                    {
-                        CompileExpression(op.Left);
-                        CompileExpression(op.Right);
-                        CompileOperator(op);
-                    }
-                    else
-                    {
-                        CompileUnaryOperator(op, op.Right as CTConstValue);
-                    }
-                    break;
-                case CTConstValue val:
-                    var value = GetConstValue(val);
-                    s_instructions.Add(new Instruction(Opcodes.PUSH_CONST, value));
-                    break;
-                default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression.");
-            }
-        }
+    public class Scope
+    {
+        public readonly Dictionary<string, LocalVariableInfo> LocalVariables = new();
+        public readonly Dictionary<string, CompiledFunction> Functions = new();
         
-        static void CompileUnaryOperator(CTOperator op, CTConstValue value)
+        public readonly bool CanAccessParentScope;
+        public readonly Scope ParentScope;
+
+        private int m_stackPtrOffset = 0;
+        public readonly CTCompiler Compiler;
+
+        public Scope(CTCompiler compiler, Scope parent, bool canAccessParentScope)
         {
-            switch (op.Operator.Type)
-            {
-                case CTokenType.PLUS: break;
-                case CTokenType.MINUS:
-                    s_instructions.Add(new Instruction(Opcodes.PUSH_CONST, -GetConstValue(value)));
-                    break;
-                
-                default: throw new NotImplementedException($"Unary operator {op.Operator.Type} not implemented");
-            }
+            Compiler = compiler;
+            compiler.AllScopes.Add(this);
+            ParentScope = parent;
+            CanAccessParentScope = canAccessParentScope;
         }
+
+        public int StackSize => m_stackPtrOffset;
         
-        static void CompileOperator(CTOperator op)
+        public void RegisterNewFunction(CompiledFunction function)
         {
-            switch (op.Operator.Type)
-            {
-                case CTokenType.PLUS:
-                    s_instructions.Add(new Instruction(Opcodes.ADD));
-                    break;
-                
-                default: throw new NotImplementedException($"Operator {op.Operator.Type} not implemented");
-            }
-        }
-        
-        static long GetConstValue(CTConstValue op)
-        {
-            if (long.TryParse(op.Token.Span.Content, out var val))
-            {
-                return val;
-            }
+            if (Functions.ContainsKey(function.FunctionName))
+                throw new Exception($"Another function with name '{function.FunctionName}' is already declared.");
             
-            throw new NotImplementedException($"Invalid value: {op.Token.Span.Content}");
+            Functions.Add(function.FunctionName, function);
+        }
+
+        public int RegisterNewVariable(string name, int stackSize)
+        {
+            int stackPtr = m_stackPtrOffset;
+            LocalVariables.Add(name, new LocalVariableInfo
+            {
+                StackPointer = stackPtr,
+                StackSize = stackSize,
+                ReadCount = 0,
+                WriteCount = 0
+            });
+            
+            m_stackPtrOffset += stackSize;
+            return stackPtr;
+        }
+
+        public LocalVariableInfo ReadVariable(string name)
+        {
+            if (LocalVariables.TryGetValue(name, out var info))
+            {
+                info.ReadCount++;
+                LocalVariables[name] = info;
+                return info;
+            }
+
+            if (CanAccessParentScope && ParentScope != null)
+            {
+                return ParentScope.ReadVariable(name);
+            }
+
+            throw new Exception($"Unknown variable {name}");
         }
         
-        static void Compile(CTNode node)
+        public void RegisterWrite(string name)
+        {
+            if (LocalVariables.TryGetValue(name, out var info))
+            {
+                info.WriteCount++;
+                LocalVariables[name] = info;
+            }
+        }
+    }
+    
+    public class CTCompiler
+    {
+        public readonly HashSet<Scope> AllScopes = new ();
+
+        public readonly List<Instruction> Instructions = new ();
+
+        public readonly Scope GlobalScope;
+        
+        private readonly CTRoot m_root;
+
+        public CTCompiler(CTRoot root)
+        {
+            m_root = root;
+            GlobalScope = new Scope(this, null, false);
+        }
+        
+        public CompiledNode CompileNode(Scope scope, CTNode node)
         {
             switch (node)
             {
-                case CTExpression expression: Compile(expression); break;
+                case CTExpression expression: 
+                    return new CompiledExpression(this, scope, expression);
+                
+                case CTAssignStatement statement:
+                    return new CompiledAssignStatement(this, scope, statement);
+                
+                case CTDeclareStatement statement: 
+                    return new CompiledDeclareStatement(this, scope, statement);
+                
+                case CTFunction function:
+                    var fn = new CompiledFunction(this, scope, function);
+                    scope.RegisterNewFunction(fn);
+                    return fn;
+                
+                case CTReturnStatement statement:
+                    return new CompiledReturnStatement(this, scope, statement);
+                
+                case CTRepeatBlockStatement statement:
+                    return new CompiledRepeatStatement(this, scope, statement);
+                
                 default: throw new NotImplementedException($"Instruction {node.GetType().Name} not implemented");
             }
         }
         
-        public static Instruction[] Compile(CTRoot root)
+        public Instruction[] Compile()
         {
-            s_instructions.Clear();
+            Instructions.Clear();
 
-            for (var i = 0; i < root.Children.Count; i++)
-                Compile(root.Children[i]);
+            for (var i = 0; i < m_root.Children.Count; i++)
+                CompileNode(GlobalScope, m_root.Children[i]);
 
-            CTOptimizer.Optimize(s_instructions);
-            return s_instructions.ToArray();
+            CTOptimizer.Optimize(this, Instructions);
+            return Instructions.ToArray();
         }
     }
 }

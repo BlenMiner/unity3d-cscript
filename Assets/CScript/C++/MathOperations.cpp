@@ -7,5 +7,7 @@ OPCODE_DEFINITION(ADD)
 }
 
 OPCODE_DEFINITION(ADD_CONST)		{ stack->data[stack->SP] += context.operand; }
-OPCODE_DEFINITION(ADD_CONST_TO_REG) { stack->registers[context.reg] += context.operand; }
-OPCODE_DEFINITION(ADD_REG_TO_REG)  { stack->registers[context.reg2] += stack->registers[context.reg]; }
+
+OPCODE_DEFINITION(ADD_CONST_TO_SPTR) {
+	stack->data[stack->SCOPE_SP - context.operand2 - 1] += context.operand;
+}

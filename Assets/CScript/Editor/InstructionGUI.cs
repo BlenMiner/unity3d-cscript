@@ -10,24 +10,25 @@ namespace Riten.CScript.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var opcode = (Opcodes)property.FindPropertyRelative("Opcode").intValue;
-            var reg1 = property.FindPropertyRelative("Reg").intValue;
-            var reg2 =property.FindPropertyRelative("Reg2").intValue;
+            var operand = property.FindPropertyRelative("Operand").longValue;
+            var operand2 = property.FindPropertyRelative("Operand2").intValue;
             
             string content = opcode.ToString();
             
-            if (reg1 != -1)
-                content += " " + (Registers)reg1;
-            
-            if (reg2 != -1)
-                content += ", " + (Registers)reg2;
-
-            if (opcode is Opcodes.ADD or Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END)
+            if (opcode is Opcodes.ADD or Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
+                or Opcodes.RETURN)
             {
                 GUI.Label(position, content);
                 return;
             }
             
-            content += ", " + property.FindPropertyRelative("Operand").longValue;
+            content += ", " + operand;
+
+            if (opcode is Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR)
+            {
+                content += ", " + operand2;
+            }
+            
             GUI.Label(position, content);
         }
     }

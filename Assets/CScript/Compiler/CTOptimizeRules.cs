@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using Riten.CScript.Native;
 
-namespace Riten.CScript.Runtime
+namespace Riten.CScript.Compiler
 {
     public readonly struct CTOptimizerRule
     {
         public readonly Opcodes[] Pattern;
 
-        readonly Action<List<Instruction>, int> Resolver;
+        readonly Action<CTCompiler, List<Instruction>, int> Resolver;
             
-        public CTOptimizerRule(Action<List<Instruction>, int> resolver, params Opcodes[] pattern)
+        public CTOptimizerRule(Action<CTCompiler, List<Instruction>, int> resolver, params Opcodes[] pattern)
         {
             Pattern = pattern;
             Resolver = resolver;
         }
 
-        public void Apply(List<Instruction> program, int index)
+        public void Apply(CTCompiler compiler, List<Instruction> program, int index)
         {
-            Resolver(program, index);
+            Resolver(compiler, program, index);
         }
         
         public static bool Match(IReadOnlyList<Instruction> program, int index, params Opcodes[] pattern)

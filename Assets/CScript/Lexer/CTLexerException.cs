@@ -1,6 +1,6 @@
 ﻿using System;
 
-[System.Serializable]
+[Serializable]
 public class CTLexerException : Exception
 {
     public CToken Token;
@@ -17,6 +17,6 @@ public class CTLexerException : Exception
     {
         var token = Token.Span.Content ?? "EOF";
         
-        return string.IsNullOrWhiteSpace(Hint) ? $"({token}): {Message}" : $"'{token}': {Message} ({Hint})";
+        return string.IsNullOrWhiteSpace(Hint) ? $"({token}:{Token.Span.Start}): {Message}" : $"'{token}': {Message} ({Hint})";
     }
 }

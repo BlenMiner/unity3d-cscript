@@ -17,9 +17,13 @@ extern "C" {
 
 	EXTERN const char* __cdecl GetOpcodeName(int index);
 
-	EXTERN Program* __cdecl CreateProgram(const Instruction * arr, const int length);
+	EXTERN Program* __cdecl CreateProgram(const Instruction* arr, const int length);
 
-	void EXTERN __cdecl FreeProgram(const Program * program);
+	void EXTERN __cdecl FreeProgram(const Program* program);
 
-	long long EXTERN __cdecl ExecuteProgram(Program * program);
+	long long EXTERN __cdecl ExecuteProgram(Program* program);
+
+	long long EXTERN __cdecl ExecuteFunction(Program* program, int functionIP);
 }
+
+void ExecuteInstruction(Program* program, Stack* stack, Instruction instruction);

@@ -26,6 +26,8 @@ namespace Riten.CScript.Native
         public delegate void FreeProgramDelegate(IntPtr program);
         
         public delegate long ExecuteProgramDelegate(IntPtr program);
+        
+        public delegate long ExecuteFunctionDelegate(IntPtr program, int ip);
 
         // ReSharper disable once UnusedMember.Local
         private const string DLL_NAME =
@@ -53,6 +55,9 @@ namespace Riten.CScript.Native
         
         [DllImport(DLL_NAME, EntryPoint="ExecuteProgram")]
         public static extern long ExecuteProgram(IntPtr program);
+        
+        [DllImport(DLL_NAME, EntryPoint="ExecuteFunction")]
+        public static extern long ExecuteFunction(IntPtr program, int ip);
 #endif
 
         private static int OPCODE_COUNT;
@@ -70,6 +75,8 @@ namespace Riten.CScript.Native
         public static FreeProgramDelegate FreeProgramFunc;
         
         public static ExecuteProgramDelegate ExecuteProgramFunc;
+        
+        public static ExecuteFunctionDelegate ExecuteFunctionFunc;
                     
 #if UNITY_EDITOR
         static void ModeChangedArgs(UnityEditor.PlayModeStateChange mode)
@@ -106,6 +113,7 @@ namespace Riten.CScript.Native
             CreateProgramFunc = CreateProgram;
             FreeProgramFunc = FreeProgram;
             ExecuteProgramFunc = ExecuteProgram;
+            ExecuteFunctionFunc = ExecuteFunction;
 #endif
             Warmup();
         }
@@ -166,6 +174,8 @@ namespace Riten.CScript.Native
             FreeProgramFunc = Native.GetFunction<FreeProgramDelegate>(nativeLibraryPtr, "FreeProgram");
             
             ExecuteProgramFunc = Native.GetFunction<ExecuteProgramDelegate>(nativeLibraryPtr, "ExecuteProgram");
+            
+            ExecuteFunctionFunc = Native.GetFunction<ExecuteFunctionDelegate>(nativeLibraryPtr, "ExecuteFunction");
         }
 #endif
  

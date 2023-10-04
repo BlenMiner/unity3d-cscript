@@ -7,15 +7,14 @@ struct Stack
 		this->size = size;
 
 		data = new long long[size];
-		registers = new long long[10];
-		SP = size - 1;
+		SP = size;
+		SCOPE_SP = SP;
 		IP = 0;
 	}
 
 	~Stack()
 	{
 		delete[] data;
-		delete[] registers;
 	}
 
 	long long PEEK()
@@ -27,16 +26,6 @@ struct Stack
 	{
 		long long value = data[SP--];
 		data[SP] = value;
-	}
-
-	void SET_REGISTER(const int id, const long long value)
-	{
-		registers[id] = value;
-	}
-
-	long long GET_REGISTER(const int id)
-	{
-		return registers[id];
 	}
 
 	void PUSH(const long long value)
@@ -56,18 +45,18 @@ struct Stack
 
 	long long GetPushedSize()
 	{
-		return size - SP - 1;
+		return size - SP;
 	}
 
 	void ResetSP()
 	{
-		SP = size - 1;
+		SP = size;
 	}
 
+	long long SCOPE_SP;
 	long long SP;
 	long long IP;
 	long long* data;
-	long long* registers;
 
 private:
 	long long size;
