@@ -33,7 +33,8 @@ public enum CTokenType
     EQUALS,
     EQUALS_EQUALS,
     REPEAT,
-    SWAP
+    SWAP,
+    STRUCT
 }
 
 [Serializable]
@@ -49,6 +50,11 @@ public struct CToken
     public CTokenType Type;
     public CTOptions Options;
     public CSpan Span;
+
+    public override string ToString()
+    {
+        return Span.ToString();
+    }
 }
 
 [Serializable]
@@ -398,6 +404,13 @@ public class CTLexer
     {
         switch (span.Content)
         {
+            case "struct":
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.STRUCT,
+                    Span = span,
+                });
+                break;
             case "return":
                 m_tokens.Add(new CToken
                 {

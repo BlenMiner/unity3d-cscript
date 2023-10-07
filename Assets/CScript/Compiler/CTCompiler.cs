@@ -15,8 +15,15 @@ namespace Riten.CScript.Compiler
         }
     }
 
+    public struct StructInfo
+    {
+        public Scope Scope;
+        public int SizeInLongs;
+    }
+
     public class Scope
     {
+        public readonly Dictionary<string, StructInfo> Structs = new();
         public readonly Dictionary<string, LocalVariableInfo> LocalVariables = new();
         public readonly Dictionary<string, CompiledFunction> Functions = new();
         
@@ -126,6 +133,9 @@ namespace Riten.CScript.Compiler
                 
                 case CTSwapStatement statement:
                     return new CompiledSwapStatement(this, scope, statement, level);
+                
+                case CTStructDefinition definition:
+                    return null; // return new CompiledStructDefinition(this, scope, definition, level);
                 
                 default: throw new NotImplementedException($"Instruction {node.GetType().Name} not implemented");
             }

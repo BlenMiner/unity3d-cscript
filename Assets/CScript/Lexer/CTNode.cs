@@ -16,7 +16,9 @@ public enum CTNodeType
     AssignStatement,
     ReturnStatement,
     RepeatStatement,
-    SWAPStatement
+    SWAPStatement,
+    StructDefinition,
+    FieldDeclaration
 }
 
 public abstract class CTStatement : CTNode

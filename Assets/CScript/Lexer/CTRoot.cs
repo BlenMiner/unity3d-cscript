@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Riten.CScript.Lexer;
 
-[System.Serializable]
+[Serializable]
 public class CTRoot : CTNode
 {
     protected List<CTNode> m_children = new ();
@@ -19,6 +19,12 @@ public class CTRoot : CTNode
         CTokenType.WORD,
         CTokenType.LEFT_PARENTHESES
     };
+    
+    public static readonly CTokenType[] FIELD_SIG =
+    {
+        CTokenType.WORD,
+        CTokenType.WORD
+    };
 
     public void Parse(IReadOnlyList<CToken> tokens)
     {
@@ -34,7 +40,11 @@ public class CTRoot : CTNode
                 continue;
             }
             
-            if (MatchSignature(tokens, index, FUNCTION_SIG))
+            if (tokens[index].Type == CTokenType.STRUCT)
+            {
+                Add(tokens, CTStructDefinition.Parse, ref index);
+            }
+            else if (MatchSignature(tokens, index, FUNCTION_SIG))
             {
                 Add(tokens, CTFunction.Parse, ref index);
             }
