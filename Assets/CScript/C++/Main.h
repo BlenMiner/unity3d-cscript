@@ -23,7 +23,10 @@ extern "C" {
 
 	long long EXTERN __cdecl ExecuteProgram(Program* program);
 
-	long long EXTERN __cdecl ExecuteFunction(Program* program, int functionIP);
+	long long EXTERN __cdecl ExecuteProgramWithOffset(Program* program, const int ipOffset);
+
+	long long EXTERN __cdecl ExecuteFunction(Program* program, const int functionIP);
+
+	void EXTERN __cdecl ExecuteInstruction(Program* program);
 }
 
-void ExecuteInstruction(Program* program, Stack* stack, Instruction instruction);

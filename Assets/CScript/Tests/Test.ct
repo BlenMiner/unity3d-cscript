@@ -1,14 +1,3 @@
-
-struct Vector2
-{
-    long x;
-    long y;
-
-    function mag() {
-         return x*x + y+y;
-    }
-}
-
 void test()
 {
     long R1 = 0;

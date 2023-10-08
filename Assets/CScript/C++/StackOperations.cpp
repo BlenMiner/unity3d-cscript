@@ -1,35 +1,73 @@
 #include "pch.h"
 #include "Opcodes.h"
 
-OPCODE_DEFINITION(PUSH_CONST)	{ stack->PUSH(context.operand1); }
-OPCODE_DEFINITION(POP)			{ stack->POP_DISCARD(); }
-OPCODE_DEFINITION(DUP) { stack->DUP(); }
+OPCODE_DEFINITION(PUSH_CONST)	
+{ 
+	program->stack->PUSH(program->instructions[program->IP].operand1);
+	NEXT_INSTRUCTION;
+}
+OPCODE_DEFINITION(POP)			
+{
+	program->stack->POP_DISCARD();
+	NEXT_INSTRUCTION;
+}
+OPCODE_DEFINITION(DUP) 
+{ 
+	program->stack->DUP(); 
+	NEXT_INSTRUCTION;
+}
 
 
-OPCODE_DEFINITION(RESERVE) { stack->SP -= context.operand1; }
-OPCODE_DEFINITION(DISCARD) { stack->SP += context.operand1; }
+OPCODE_DEFINITION(RESERVE)
+{ 
+	program->stack->SP -= program->instructions[program->IP].operand1; 
+	NEXT_INSTRUCTION;
+}
+OPCODE_DEFINITION(DISCARD) 
+{
+	program->stack->SP += program->instructions[program->IP].operand1; 
+	NEXT_INSTRUCTION;
+}
 
 OPCODE_DEFINITION(PUSH_CONST_TO_SPTR)
 {
-	stack->data[stack->SCOPE_SP - context.operand2 - 1] = context.operand1;
+	auto stack = program->stack;
+	auto context = program->instructions[program->IP];
+	stack->data[stack->SCOPE_SP - context.operand2] = context.operand1;
+	NEXT_INSTRUCTION;
 }
 OPCODE_DEFINITION(PUSH_FROM_SPTR)
 {
-	stack->PUSH(stack->data[stack->SCOPE_SP - context.operand1 - 1]);
+	auto stack = program->stack;
+	stack->PUSH(stack->data[stack->SCOPE_SP - program->instructions[program->IP].operand1]);
+	NEXT_INSTRUCTION;
 }
 OPCODE_DEFINITION(POP_TO_SPTR)
 {
-	stack->data[stack->SCOPE_SP - context.operand1 - 1] = stack->POP();
+	auto stack = program->stack;
+	program->stack->data[stack->SCOPE_SP - program->instructions[program->IP].operand1] = stack->POP();
+	NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(COPY_FROM_SPTR_TO_SPTR)
 {
-	stack->data[stack->SCOPE_SP - context.operand2 - 1] = stack->data[stack->SCOPE_SP - context.operand1 - 1];
+	auto stack = program->stack;
+	auto context = program->instructions[program->IP];
+	stack->data[stack->SCOPE_SP - context.operand2] = stack->data[stack->SCOPE_SP - context.operand1];
+	NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(SWAP_SPTR_SPTR)
 {
-	auto t = stack->data[stack->SCOPE_SP - context.operand2 - 1];
-	stack->data[stack->SCOPE_SP - context.operand2 - 1] = stack->data[stack->SCOPE_SP - context.operand1 - 1];
-	stack->data[stack->SCOPE_SP - context.operand1 - 1] = t;
+	auto stack = program->stack;
+	auto context = program->instructions[program->IP];
+
+	auto a = stack->SCOPE_SP - context.operand1;
+	auto b = stack->SCOPE_SP - context.operand2;
+
+	auto t = stack->data[b];
+	stack->data[b] = stack->data[a];
+	stack->data[a] = t;
+
+	NEXT_INSTRUCTION;
 }

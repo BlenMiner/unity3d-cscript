@@ -2,13 +2,15 @@
 
 #include "Stack.h"
 
-#define OPCODE_DEFINITION(name) void name##_IMP(Program* program, Stack* stack, Instruction context)
+#define NEXT_INSTRUCTION program->IP++
+#define OPCODE_DEFINITION(name) void name##_IMP(Program* program)
 
 #define OPCODE_LIST \
     OPCODE(JMP_IF_TOP_ZERO)\
     OPCODE(JMP)\
     OPCODE(CALL)\
     OPCODE(RETURN)\
+    OPCODE(STOP)\
 	\
 	OPCODE(ADD)\
     OPCODE(ADD_CONST)\
@@ -108,25 +110,34 @@ struct Instruction
 
 struct Program
 {
-	Program(const Instruction* instructions, int instructionsCount)
+	Program(const Instruction* instructions, const int instructionsCount)
 	{
 		this->stack = new Stack();
 		this->instructions = new Instruction[instructionsCount];
+		this->opcodes = new int[instructionsCount];
 		this->instructionsCount = instructionsCount;
 
 		for (auto i = 0; i < instructionsCount; i++)
+		{
 			this->instructions[i] = instructions[i];
+			this->opcodes[i] = instructions[i].opcode;
+		}
+
+		IP = 0;
 	}
 
 	~Program()
 	{
 		delete this->stack;
 		delete[] this->instructions;
+		delete[] this->opcodes;
 	}
 
 	Stack* stack;
 	Instruction* instructions;
+	int* opcodes;
 	int instructionsCount;
+	long long IP;
 };
 
 #define OPCODE(x) OPCODE_DEFINITION(x);

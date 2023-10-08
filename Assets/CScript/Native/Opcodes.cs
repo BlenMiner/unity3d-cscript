@@ -6,6 +6,7 @@
         JMP,
         CALL,
         RETURN,
+        STOP,
         ADD,
         ADD_CONST,
         ADD_CONST_TO_SPTR,

@@ -3,80 +3,103 @@
 #include "Main.h"
 #include <vector>
 
-OPCODE_DEFINITION(JMP)				{ stack->IP += context.operand1 - 1; }
-OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	{ if (stack->PEEK() == 0) stack->IP += context.operand1 - 1; }
+OPCODE_DEFINITION(JMP)				
+{
+	program->IP += program->instructions[program->IP].operand1;
+}
+
+OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	
+{ 
+	if (program->stack->PEEK() == 0)
+		 program->IP += program->instructions[program->IP].operand1;
+	else NEXT_INSTRUCTION;
+}
 
 OPCODE_DEFINITION(CALL)
 {
-	stack->PUSH(stack->SCOPE_SP);
-	stack->PUSH(stack->IP);
+	auto stack = program->stack;
+	auto context = program->instructions[program->IP];
 
-	stack->IP = context.operand1;
-	stack->SCOPE_SP = stack->SP;
+	stack->PUSH(stack->SCOPE_SP);
+	stack->PUSH(program->IP);
+
+	program->IP = context.operand1;
+	stack->SCOPE_SP = stack->SP - 1;
 }
 
 OPCODE_DEFINITION(RETURN)
 {
-	long long returnValueSize = stack->SCOPE_SP - stack->SP;
-	long long indexOfReturnValue = stack->SCOPE_SP - returnValueSize + 1;
+	auto stack = program->stack;
 
-	stack->SP = stack->SCOPE_SP;
-	stack->IP = stack->POP();
+	auto oldScope = stack->SCOPE_SP + 1;
+
+	long long returnValueSize = oldScope - stack->SP;
+	long long indexOfReturnValue = oldScope - returnValueSize + 1;
+
+	stack->SP = oldScope;
+	program->IP = stack->POP();
 	stack->SCOPE_SP = stack->POP();
 
-	// Copy return value to the top of the stack
-	// memcpy(stack->data + stack->SP, stack->data + stack->SP + indexOfReturnValue, returnValueSize);
+	if (returnValueSize == 0)
+		return;
+
 	memcpy(stack->data + stack->SP - returnValueSize, stack->data + indexOfReturnValue - returnValueSize, returnValueSize * sizeof(long long));
 
 	stack->SP -= returnValueSize;
 }
 
-
-
-OPCODE_DEFINITION(REPEAT_CONST)
+OPCODE_DEFINITION(STOP)
 {
-	long long loopTimes = context.operand1;
+	program->IP = program->instructionsCount;
+}
 
-	long long loopStart = stack->IP;
-	long long loopEnd = loopStart + 1;
+void REPEAT_COUNT(Program* program, const long long loopTimes)
+{
+	NEXT_INSTRUCTION;
 
-	while (loopEnd < program->instructionsCount)
+	long long loopStart = program->IP;
+	long long loopEnd = loopStart;
+
+	while (loopEnd < program->instructionsCount && 
+		program->instructions[loopEnd].opcode != REPEAT_END)
 	{
-		if (program->instructions[loopEnd].opcode == REPEAT_END)
-		{
-			--loopEnd;
-			break;
-		}
-
 		loopEnd++;
 	}
 
 	if (loopTimes == 0)
 	{
-		stack->IP = loopEnd + 2;
+		program->IP = loopEnd + 1;
 		return;
 	}
 
 	for (auto i = 0; i < loopTimes; ++i)
 	{
-		while (stack->IP <= loopEnd) ExecuteInstruction(program, stack, program->instructions[stack->IP++]);
+		while (program->IP < loopEnd)
+			ExecuteInstruction(program);
 
-		if (stack->IP == loopEnd + 1)
-			stack->IP = loopStart;
+		if (program->IP == loopEnd)
+			program->IP = loopStart;
 		else return;
 	}
 
-	stack->IP = loopEnd + 1;
+	program->IP = loopEnd + 1;
+}
+
+OPCODE_DEFINITION(REPEAT_CONST)
+{
+	REPEAT_COUNT(program, program->instructions[program->IP].operand1);
 }
 
 OPCODE_DEFINITION(REPEAT)
 {
-	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->POP() });
+	auto stack = program->stack;
+	REPEAT_COUNT(program, stack->POP());
 }
 
 OPCODE_DEFINITION(REPEAT_END) {}
 
 OPCODE_DEFINITION(REPEAT_SPTR)
 {
-	REPEAT_CONST_IMP(program, stack, Instruction{ REPEAT_CONST, stack->data[stack->SCOPE_SP + context.operand1] });
+	auto stack = program->stack;
+	REPEAT_COUNT(program, stack->data[stack->SCOPE_SP + program->instructions[program->IP].operand1]);
 }

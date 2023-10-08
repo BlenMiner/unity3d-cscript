@@ -73,6 +73,9 @@ namespace InterpreterTests
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
 			auto program = CreateProgram(instructions, arrSize);
 			long long res = ExecuteProgram(program);
+
+			Assert::AreEqual((long long)1, program->stack->GetPushedSize());
+
 			FreeProgram(program);
 
 			Assert::AreEqual((long long)40, res);
@@ -80,24 +83,43 @@ namespace InterpreterTests
 
 		TEST_METHOD(EXECUTE_FUNCTION)
 		{
-			const int LOOP = 20;
-
 			Instruction instructions[]{
-				Instruction(Opcodes::PUSH_CONST, 0),
+				Instruction(Opcodes::RESERVE, 1),
+				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 0),
 				Instruction(Opcodes::ADD_CONST, 6),
 				Instruction(Opcodes::ADD_CONST, 69),
 				Instruction(Opcodes::RETURN),
+				Instruction(Opcodes::STOP),
+				Instruction(Opcodes::CALL, 0),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
 			auto program = CreateProgram(instructions, arrSize);
-			long long res = ExecuteFunction(program, 0);
+
+			program->IP = 6;
+
+			ExecuteInstruction(program);
+
+			Assert::AreEqual((long long)2, program->stack->GetPushedSize());
+
+			ExecuteInstruction(program);
+
+			Assert::AreEqual((long long)3, program->stack->GetPushedSize());
+
+			ExecuteInstruction(program);
+
+			Assert::AreEqual((long long)3, program->stack->GetPushedSize());
+
+			ExecuteInstruction(program);
+			ExecuteInstruction(program);
+			ExecuteInstruction(program);
 
 			Assert::AreEqual((long long)1, program->stack->GetPushedSize());
 
+			Assert::AreEqual((long long)(6 +69), program->stack->PEEK());
+
 			FreeProgram(program);
 
-			Assert::AreEqual((long long)(6 +69), res);
 		}
 
 		TEST_METHOD(RESERVE_AND_POP_SPTR_TEST)
@@ -151,8 +173,6 @@ namespace InterpreterTests
 
 		TEST_METHOD(TEST_REPEAT)
 		{
-			const int LOOP = 20;
-
 			Instruction instructions[]{
 				Instruction(Opcodes::PUSH_CONST, 5),
 				Instruction(Opcodes::PUSH_CONST, 10),

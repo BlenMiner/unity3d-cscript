@@ -6,7 +6,7 @@
 
 #define OPCODE(X) & X##_IMP,
 
-void (*JUMP_TABLE[])(Program*, Stack*, Instruction)
+void (*JUMP_TABLE[])(Program*)
 {
 	OPCODE_LIST
 };
@@ -46,50 +46,53 @@ void FreeProgram(const Program* program)
 	delete program;
 }
 
-void ExecuteInstruction(Program* program, Stack* stack, Instruction instruction)
+void ExecuteInstruction(Program* program)
 {
-#define OPCODE(x) case x: x##_IMP(program, stack, instruction); break;
-	switch (instruction.opcode)
-	{
-		OPCODE_LIST
-	}
-#undef OPCODE
+	JUMP_TABLE[program->opcodes[program->IP]](program);
 }
 
 long long ExecuteProgram(Program* program)
 {
-	auto length = program->instructionsCount;
+	const auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
-	stackPtr->IP = 0;
+	program->IP = 0;
 	stackPtr->ResetSP();
 
-	while (stackPtr->IP < length)
-	{
-		Instruction instruction = program->instructions[stackPtr->IP++];
-		ExecuteInstruction(program, stackPtr, instruction);
-	}
+	while (program->IP < length)
+		ExecuteInstruction(program);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
 
-long long ExecuteFunction(Program* program, int functionIP)
+long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
+{
+	const auto length = program->instructionsCount;
+	Stack* stackPtr = program->stack;
+
+	program->IP = ipOffset;
+	stackPtr->ResetSP();
+
+	while (program->IP < length)
+		ExecuteInstruction(program);
+
+	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
+}
+
+long long ExecuteFunction(Program* program, const int functionIP)
 {
 	auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
-	stackPtr->IP = functionIP;
+	program->IP = functionIP;
+
 	stackPtr->ResetSP();
-
-	stackPtr->PUSH(0);
+	stackPtr->PUSH(program->stack->SCOPE_SP);
 	stackPtr->PUSH(length);
-	stackPtr->SCOPE_SP = stackPtr->SP;
+	stackPtr->SCOPE_SP = stackPtr->SP - 1;
 
-	while (stackPtr->IP < length)
-	{
-		Instruction instruction = program->instructions[stackPtr->IP++];
-		ExecuteInstruction(program, stackPtr, instruction);
-	}
+	while (program->IP < length)
+		ExecuteInstruction(program);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }

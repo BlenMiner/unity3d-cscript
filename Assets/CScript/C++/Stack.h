@@ -5,11 +5,8 @@ struct Stack
 	Stack(long long size = 512 * 512)
 	{
 		this->size = size;
-
 		data = new long long[size];
-		SP = size;
-		SCOPE_SP = SP;
-		IP = 0;
+		ResetSP();
 	}
 
 	~Stack()
@@ -51,11 +48,11 @@ struct Stack
 	void ResetSP()
 	{
 		SP = size;
+		SCOPE_SP = SP - 1;
 	}
 
 	long long SCOPE_SP;
 	long long SP;
-	long long IP;
 	long long* data;
 
 private:
