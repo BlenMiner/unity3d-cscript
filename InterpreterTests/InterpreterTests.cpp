@@ -195,6 +195,49 @@ namespace InterpreterTests
 			FreeProgram(program);
 		}
 
+		TEST_METHOD(EXECUTE_FUNCTION_ARGS_3)
+		{
+			Instruction instructions[]{
+				Instruction(Opcodes::RESERVE, 1),
+				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 10, 0),
+				Instruction(Opcodes::REPEAT_CONST, 10),
+				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
+				Instruction(Opcodes::PUSH_CONST, 5),
+				Instruction(Opcodes::CALL, 11, 2),
+				Instruction(Opcodes::POP_TO_SPTR, 0),
+				Instruction(Opcodes::REPEAT_END),
+				Instruction(Opcodes::RETURN),
+				Instruction(Opcodes::DISCARD, 1),
+				Instruction(Opcodes::RETURN),
+
+				Instruction(Opcodes::RESERVE, 2),
+				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
+				Instruction(Opcodes::PUSH_FROM_SPTR, 1),
+				Instruction(Opcodes::ADD_CONST, 5),
+				Instruction(Opcodes::ADD),
+				Instruction(Opcodes::POP_TO_SPTR, 0),
+				Instruction(Opcodes::DISCARD, 1),
+				Instruction(Opcodes::RETURN),
+				Instruction(Opcodes::DISCARD, 2),
+				Instruction(Opcodes::RETURN),
+
+				Instruction(Opcodes::STOP),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			program->IP = 3;
+
+			ExecuteFunction(program, 0);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
+
+			Assert::AreEqual((long long)(69), program->stack->PEEK());
+
+			FreeProgram(program);
+		}
+
 		TEST_METHOD(RESERVE_AND_POP_SPTR_TEST)
 		{
 			const int LOOP = 20;
@@ -274,6 +317,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::PUSH_CONST, 10),
 				Instruction(Opcodes::REPEAT),
 				Instruction(Opcodes::ADD_CONST, 1),
+				Instruction(Opcodes::ADD_CONST, 1),
 				Instruction(Opcodes::REPEAT_END),
 			};
 
@@ -283,7 +327,7 @@ namespace InterpreterTests
 
 			FreeProgram(program);
 
-			Assert::AreEqual((long long)(5 + 10), res);
+			Assert::AreEqual((long long)(5 + 20), res);
 		}
 
 		TEST_METHOD(COPY_FROM_SPTR)

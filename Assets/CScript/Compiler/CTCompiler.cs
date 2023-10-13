@@ -190,6 +190,7 @@ namespace Riten.CScript.Compiler
             for (var i = 0; i < m_root.Children.Count; i++)
                 CompileNode(GlobalScope, m_root.Children[i], 0);
 
+            Instructions.Add(new Instruction(Opcodes.STOP));
             FixTempFunctionCalls();
 
             CTOptimizer.Optimize(this, Instructions);

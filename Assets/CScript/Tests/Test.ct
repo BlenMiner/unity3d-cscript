@@ -1,9 +1,16 @@
-long test2()
-{
-    return customAdd(169, 1);
-}
-
 long customAdd(long a, long b)
 {
     return a + b + 5;
+}
+
+long test2()
+{
+    long res = 10;
+    
+    repeat (10)
+    {
+        res = customAdd(res, 5);
+    }
+
+    return res;
 }

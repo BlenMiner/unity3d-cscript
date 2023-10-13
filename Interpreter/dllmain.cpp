@@ -88,12 +88,16 @@ long long ExecuteFunction(Program* program, const int functionIP)
 	auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
-	program->IP = functionIP;
-
 	stackPtr->ResetSP();
-	stackPtr->PUSH(program->stack->SCOPE_SP);
-	stackPtr->PUSH(length);
+
+	stackPtr->PUSH(stackPtr->SCOPE_SP);
+	stackPtr->PUSH(length - 1);
+
+	program->IP = functionIP;
 	stackPtr->SCOPE_SP = stackPtr->SP - 1;
+
+	/*stackPtr->PUSH(stackPtr->SCOPE_SP);
+	stackPtr->PUSH(length);*/
 
 	while (program->IP < length)
 		ExecuteInstruction(program, stackPtr);

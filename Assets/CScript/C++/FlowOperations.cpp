@@ -79,12 +79,16 @@ void REPEAT_COUNT(Program* program, Stack* stack, const long long loopTimes)
 
 	for (auto i = 0; i < loopTimes; ++i)
 	{
-		while (program->IP < loopEnd)
+		while (true)
+		{
 			ExecuteInstruction(program, stack);
 
-		if (program->IP == loopEnd)
-			program->IP = loopStart;
-		else return;
+			if (program->IP == loopEnd)
+			{
+				program->IP = loopStart;
+				break;
+			}
+		}
 	}
 
 	program->IP = loopEnd + 1;
