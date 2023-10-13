@@ -6,7 +6,7 @@
 
 #define OPCODE(X) & X##_IMP,
 
-void (*JUMP_TABLE[])(Program*)
+void (*JUMP_TABLE[])(Program*, Stack*, const SaturatedInstruction&)
 {
 	OPCODE_LIST
 };
@@ -46,13 +46,17 @@ void FreeProgram(const Program* program)
 	delete program;
 }
 
-void ExecuteInstruction(Program* program)
+void ExecuteInstruction(Program* program, Stack* stack)
 {
-	JUMP_TABLE[program->opcodes[program->IP]](program);
+	auto inst = program->instructions[program->IP];
+	inst.function(program, stack, inst);
+	// JUMP_TABLE[program->opcodes[program->IP]](program, stack);
 }
 
 long long ExecuteProgram(Program* program)
 {
+	// auto program = *programPtr;
+
 	const auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
@@ -60,7 +64,7 @@ long long ExecuteProgram(Program* program)
 	stackPtr->ResetSP();
 
 	while (program->IP < length)
-		ExecuteInstruction(program);
+		ExecuteInstruction(program, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
@@ -74,7 +78,7 @@ long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
 	stackPtr->ResetSP();
 
 	while (program->IP < length)
-		ExecuteInstruction(program);
+		ExecuteInstruction(program, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
@@ -92,7 +96,17 @@ long long ExecuteFunction(Program* program, const int functionIP)
 	stackPtr->SCOPE_SP = stackPtr->SP - 1;
 
 	while (program->IP < length)
-		ExecuteInstruction(program);
+		ExecuteInstruction(program, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
+}
+
+void SaturatedInstruction::InitializeSaturatedInstruction(const Instruction& instruction)
+{
+	this->function = JUMP_TABLE[instruction.opcode];
+	this->opcode = instruction.opcode;
+	this->operand1 = instruction.operand1;
+	this->operand2 = instruction.operand2;
+	this->operand3 = instruction.operand3;
+	this->operand4 = instruction.operand4;
 }

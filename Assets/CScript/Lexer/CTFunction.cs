@@ -16,14 +16,14 @@ public class CTArgumentDeclaration : CTNode
 public class CTArgumentsDeclaration : CTStatement
 {
     public readonly CToken StartParenthesis;
-    public readonly IList<CTArgumentDeclaration> Arguments;
+    public readonly IList<CTArgumentDeclaration> Values;
     public readonly CToken EndParenthesis;
     
     public CTArgumentsDeclaration(CToken startParenthesis, IList<CTArgumentDeclaration> args, CToken endParenthesis) 
         : base(CTNodeType.ArgumentsDeclaration)
     {
         StartParenthesis = startParenthesis;
-        Arguments = args;
+        Values = args;
         EndParenthesis = endParenthesis;
     }
     

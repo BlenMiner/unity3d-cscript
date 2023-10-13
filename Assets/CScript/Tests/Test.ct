@@ -1,13 +1,9 @@
-void test()
+long test2()
 {
-    long R1 = 0;
-    long R2 = 1;
-     
-    repeat(1000000)
-    {
-        R2 = R2 + R1;
-        R1 <=> R2;
-    }
+    return customAdd(169, 1);
+}
 
-    return R1;
+long customAdd(long a, long b)
+{
+    return a + b + 5;
 }

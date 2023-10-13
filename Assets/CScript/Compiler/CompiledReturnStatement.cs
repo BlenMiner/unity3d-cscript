@@ -15,7 +15,8 @@ namespace Riten.CScript.Compiler
             
             Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
             
-            Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, (long)0));
+            if (Scope.LocalVariables.Count > 0)
+                Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, (long)0));
 
             if (Expression.StackSize >= scope.StackSize)
             {

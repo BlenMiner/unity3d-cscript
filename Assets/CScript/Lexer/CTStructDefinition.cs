@@ -48,7 +48,7 @@ namespace Riten.CScript.Lexer
                 if (i >= tokens.Count)
                     throw new CTLexerException(tokens[i], "Expected expression, got end of file in field declaration.");
                 
-                var expression = CTExpression.Parse(tokens, i);
+                var expression = CTExpression.Parse(tokens, i, "field declaration");
             
                 i = expression.Index;
             

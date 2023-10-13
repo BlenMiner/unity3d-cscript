@@ -8,7 +8,7 @@ namespace Riten.CScript.Compiler
     {
         public readonly CTExpression ExpressionNode;
         public readonly Scope Scope;
-        public long StackSize;
+        public readonly long StackSize;
         
         public CompiledExpression(CTCompiler compiler, Scope scope, CTExpression expressionNode, int level)
             :base(compiler)
@@ -74,6 +74,19 @@ namespace Riten.CScript.Compiler
                         CompileUnaryOperator(op, op.Right as CTConstValue);
                     }
                     break;
+                case CTFunctionCallExpression val:
+                    var fnName = val.Identifier.Span.Content;
+                    // var function = Scope.GetFunction(val.Identifier.Span.Content);
+                    //int expectedArgCount = function.Function.Arguments.Values.Count;
+                    int actualArgCount = val.Arguments.Values.Length;
+                    
+                    for (int i = 0; i < actualArgCount; i++)
+                        _ = new CompiledExpression(Compiler, Scope, val.Arguments.Values[i], level);
+                    
+                    Compiler.TemporaryFunctionCalls.Add(Compiler.Instructions.Count, new TempFunctionCall(fnName, actualArgCount, Scope));
+                    Compiler.Instructions.Add(new Instruction(Opcodes.CALL, -1, actualArgCount));
+                    
+                    break;
                 case CTConstValue val:
                     var value = GetConstValue(val);
                     Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, value));
@@ -82,7 +95,7 @@ namespace Riten.CScript.Compiler
                     var variable = Scope.ReadVariable(var.Identifier.Span.Content, level);
                     Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_FROM_SPTR, variable.StackPointer));
                     break;
-                default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression.");
+                default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression during compilation.");
             }
         }
     }

@@ -27,6 +27,6 @@ extern "C" {
 
 	long long EXTERN __cdecl ExecuteFunction(Program* program, const int functionIP);
 
-	void EXTERN __cdecl ExecuteInstruction(Program* program);
+	void EXTERN __cdecl ExecuteInstruction(Program* program, Stack* stack);
 }
 

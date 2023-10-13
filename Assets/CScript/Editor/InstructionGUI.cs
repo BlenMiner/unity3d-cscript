@@ -27,7 +27,7 @@ namespace Riten.CScript.Editor
 
             switch (opcode)
             {
-                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR:
+                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR or Opcodes.CALL:
                     content += ", " + operand2;
                     break;
                 
@@ -38,6 +38,23 @@ namespace Riten.CScript.Editor
             }
 
             GUI.Label(position, content);
+        }
+    }
+    
+    [CustomPropertyDrawer(typeof(CTError))]
+    public class ErrorGUI : PropertyDrawer
+    {
+        private GUIStyle m_skin;
+        
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            m_skin ??= new GUIStyle(GUI.skin.label)
+            {
+                richText = true
+            };
+
+            var error = property.FindPropertyRelative("Message").stringValue;
+            EditorGUI.LabelField(position, error, m_skin);
         }
     }
 }

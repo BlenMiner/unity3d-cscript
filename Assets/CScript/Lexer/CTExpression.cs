@@ -38,7 +38,7 @@ public class CTExpression : CTNode
         return 0;
     }
     
-    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i, string hint)
     {
         var valueStack = new Stack<CTNode>();
         var operatorStack = new Stack<CToken>();
@@ -53,17 +53,11 @@ public class CTExpression : CTNode
         {
             var token = tokens[i];
             
-            if (token.Type == CTokenType.SEMICOLON)
-            {
-                i++;
+            if (token.Type is CTokenType.SEMICOLON or CTokenType.COMMA)
                 break;
-            }
 
-            if (token.Type == CTokenType.RIGHT_PARENTHESES && parenthesisCount == 0)
-            {
-                i++;
+            if (token.Type == CTokenType.RIGHT_PARENTHESES && parenthesisCount <= 0)
                 break;
-            }
 
             switch (token.Type)
             {
@@ -72,13 +66,30 @@ public class CTExpression : CTNode
                     if (wasOperator == false)
                         throw new CTLexerException(token, $"Missing operator for '{token.Span}'.");
                     
-                    CTNode nodeV = token.Type switch
-                    {
-                        CTokenType.NUMBER => new CTConstValue(token),
-                        CTokenType.WORD => new CTVariable(token),
-                        _ => throw new CTLexerException(token, $"Unexpected token '{token.Span}'.")
-                    };
+                    CTNode nodeV;
                     
+                    switch (token.Type)
+                    {
+                        case CTokenType.NUMBER:
+                            nodeV = new CTConstValue(token);
+                            break;
+                        case CTokenType.WORD:
+
+                            if (CTRoot.MatchSignature(tokens, i, CTRoot.FUNCTION_CALL_SIG))
+                            {
+                                var response = CTFunctionCallExpression.Parse(tokens, i);
+                                nodeV = response.Node;
+                                i = response.Index;
+                            }
+                            else
+                            {
+                                nodeV = new CTVariable(token);
+                            }
+                            break;
+                        default:
+                            throw new CTLexerException(token, $"Unexpected token '{token.Span}'.");
+                    }
+
                     valueStack.Push(nodeV);
                     wasOperator = false;
                     break;
@@ -148,7 +159,7 @@ public class CTExpression : CTNode
                     
                     wasOperator = false;
                     break;
-                default: throw new CTLexerException(token, $"Unexpected token '{token.Span}' in expression.");
+                default: throw new CTLexerException(token, $"Unexpected token '{token.Span}' in {hint}.");
             }
             
             i++;

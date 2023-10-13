@@ -26,14 +26,16 @@ namespace Riten.CScript.Compiler
                 }
             }
             
-            /*for (int i = 0; i < cmp.Instructions.Count; i++)
+            for (int i = 0; i < cmp.Instructions.Count; i++)
             {
-                if (cmp.Instructions[i].Opcode == (int)Opcodes.JMP)
+                var inst = cmp.Instructions[i];
+                
+                if (inst.Opcode == (int)Opcodes.CALL && inst.Operand >= pastValue)
                 {
-                    if (cmp.Instructions[i].Operand >= pastValue)
-                        cmp.Instructions[i].Operand += offset;
+                    inst.Operand += offset;
+                    cmp.Instructions[i] = inst;
                 }
-            }*/
+            }
         }
         
         static void Optimize_PushConst_Repeat(CTCompiler cmp,List<Instruction> program, int index)

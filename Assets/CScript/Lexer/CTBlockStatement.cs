@@ -37,7 +37,7 @@ namespace Riten.CScript.Lexer
             var statements = new List<CTStatement>();
             
             if (tokens[i].Type != CTokenType.LEFT_BRACE)
-                throw new CTLexerException(tokens[i], $"Expected '{{', got '{tokens[i].Span}'.");
+                throw new CTLexerException(tokens[i], $"Expected '{{', got '{tokens[i].Span}'. In Block statement.");
 
             ++i;
             

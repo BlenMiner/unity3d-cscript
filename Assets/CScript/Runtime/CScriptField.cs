@@ -25,7 +25,7 @@ public class CScriptField
             return false;
         }
         
-        bool showBottomBar = m_cscript.RootNode?.Errors.Count > 0;
+        bool showBottomBar = m_cscript.Errors.Count > 0;
         float bottomMargin = showBottomBar ? BOTTOM_MARGIN : 0f;
 
         var scriptRect = new Rect(rect.x, rect.y, rect.width, rect.height - bottomMargin);
@@ -37,7 +37,7 @@ public class CScriptField
 
             GUI.contentColor = new Color(1f, 0.5f, 0.5f);
             GUI.skin.box.richText = true;
-            GUI.Box(bottomBarRect, m_cscript.RootNode?.Errors.Count > 0 ? m_cscript.RootNode?.Errors[0].ToString() : string.Empty);
+            GUI.Box(bottomBarRect, m_cscript.Errors.Count > 0 ? m_cscript.Errors[0].ToString() : string.Empty);
             GUI.contentColor = Color.white;
         }
 

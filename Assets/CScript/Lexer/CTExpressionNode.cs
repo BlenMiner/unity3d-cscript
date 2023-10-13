@@ -29,12 +29,5 @@
             Left = left;
             Right = right;
         }
-
-        public CTOperator(CToken op) : base(CTNodeType.Operator)
-        {
-            Operator = op;
-            Left = null;
-            Right = null;
-        }
     }
 }

@@ -27,11 +27,11 @@ namespace Riten.CScript.Lexer
             
             ++i;
 
-            var count = CTExpression.Parse(tokens, i);
-            i = count.Index;
+            var count = CTExpression.Parse(tokens, i, "repeat count");
+            i = count.Index + 1;
 
             if (tokens[i].Type != CTokenType.LEFT_BRACE)
-                throw new CTLexerException(tokens[i], $"Expected '{{', got '{tokens[i].Span}'.");
+                throw new CTLexerException(tokens[i], $"Expected '{{', got '{tokens[i].Span}'. In Repeat statement.");
 
             var block = CTBlockStatement.Parse(tokens, i);
             i = block.Index;

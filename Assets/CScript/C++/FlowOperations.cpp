@@ -5,20 +5,25 @@
 
 OPCODE_DEFINITION(JMP)				
 {
-	program->IP += program->instructions[program->IP].operand1;
+	program->IP += context.operand1;
 }
 
 OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	
 { 
-	if (program->stack->PEEK() == 0)
-		 program->IP += program->instructions[program->IP].operand1;
+	if (stack->PEEK() == 0)
+		 program->IP += context.operand1;
 	else NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(CALL)
 {
-	auto stack = program->stack;
-	auto context = program->instructions[program->IP];
+	// move memory to two spaces ahead
+	if (context.operand2 > 0)
+	{
+		auto start = stack->SP - 2;
+		memmove(stack->data + start, stack->data + stack->SP, context.operand2 * sizeof(long long));
+		stack->SP += context.operand2;
+	}
 
 	stack->PUSH(stack->SCOPE_SP);
 	stack->PUSH(program->IP);
@@ -29,8 +34,6 @@ OPCODE_DEFINITION(CALL)
 
 OPCODE_DEFINITION(RETURN)
 {
-	auto stack = program->stack;
-
 	auto oldScope = stack->SCOPE_SP + 1;
 
 	long long returnValueSize = oldScope - stack->SP;
@@ -46,6 +49,8 @@ OPCODE_DEFINITION(RETURN)
 	memcpy(stack->data + stack->SP - returnValueSize, stack->data + indexOfReturnValue - returnValueSize, returnValueSize * sizeof(long long));
 
 	stack->SP -= returnValueSize;
+
+	NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(STOP)
@@ -53,14 +58,14 @@ OPCODE_DEFINITION(STOP)
 	program->IP = program->instructionsCount;
 }
 
-void REPEAT_COUNT(Program* program, const long long loopTimes)
+void REPEAT_COUNT(Program* program, Stack* stack, const long long loopTimes)
 {
 	NEXT_INSTRUCTION;
 
 	long long loopStart = program->IP;
 	long long loopEnd = loopStart;
 
-	while (loopEnd < program->instructionsCount && 
+	while (loopEnd < program->instructionsCount &&
 		program->instructions[loopEnd].opcode != REPEAT_END)
 	{
 		loopEnd++;
@@ -75,7 +80,7 @@ void REPEAT_COUNT(Program* program, const long long loopTimes)
 	for (auto i = 0; i < loopTimes; ++i)
 	{
 		while (program->IP < loopEnd)
-			ExecuteInstruction(program);
+			ExecuteInstruction(program, stack);
 
 		if (program->IP == loopEnd)
 			program->IP = loopStart;
@@ -87,19 +92,17 @@ void REPEAT_COUNT(Program* program, const long long loopTimes)
 
 OPCODE_DEFINITION(REPEAT_CONST)
 {
-	REPEAT_COUNT(program, program->instructions[program->IP].operand1);
+	REPEAT_COUNT(program, stack, context.operand1);
 }
 
 OPCODE_DEFINITION(REPEAT)
 {
-	auto stack = program->stack;
-	REPEAT_COUNT(program, stack->POP());
+	REPEAT_COUNT(program, stack, stack->POP());
 }
 
 OPCODE_DEFINITION(REPEAT_END) {}
 
 OPCODE_DEFINITION(REPEAT_SPTR)
 {
-	auto stack = program->stack;
-	REPEAT_COUNT(program, stack->data[stack->SCOPE_SP + program->instructions[program->IP].operand1]);
+	REPEAT_COUNT(program, stack, stack->data[stack->SCOPE_SP + context.operand1]);
 }

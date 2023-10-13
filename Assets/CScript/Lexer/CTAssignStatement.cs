@@ -33,7 +33,7 @@ namespace Riten.CScript.Lexer
             if (i >= tokens.Count)
                 throw new CTLexerException(equalSign, "Expected expression, got end of file.");
             
-            var expression = CTExpression.Parse(tokens, i);
+            var expression = CTExpression.Parse(tokens, i, "assign expression");
             
             return new CTNodeResponse(new CTAssignStatement(
                 identifier,

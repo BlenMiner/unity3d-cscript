@@ -2,20 +2,28 @@
 using System.Collections.Generic;
 using Riten.CScript.Lexer;
 
-[Serializable]
 public class CTRoot : CTNode
 {
-    protected List<CTNode> m_children = new ();
-    
-    public List<CTLexerException> Errors { get; private set; } = new();
+    readonly List<CTNode> m_children = new ();
     
     public IReadOnlyList<CTNode> Children => m_children;
 
-    public CTRoot() : base(CTNodeType.Root) {}
+    private readonly Action<CTLexerException> Error;
+
+    public CTRoot(Action<CTLexerException> Error) : base(CTNodeType.Root)
+    {
+        this.Error = Error;
+    }
     
     public static readonly CTokenType[] FUNCTION_SIG =
     {
         CTokenType.WORD,
+        CTokenType.WORD,
+        CTokenType.LEFT_PARENTHESES
+    };
+    
+    public static readonly CTokenType[] FUNCTION_CALL_SIG =
+    {
         CTokenType.WORD,
         CTokenType.LEFT_PARENTHESES
     };
@@ -34,24 +42,29 @@ public class CTRoot : CTNode
 
         while (index < tokens.Count)
         {
-            if (tokens[index].Type == CTokenType.SEMICOLON)
+            switch (tokens[index].Type)
             {
-                index++;
-                continue;
-            }
-            
-            if (tokens[index].Type == CTokenType.STRUCT)
-            {
-                Add(tokens, CTStructDefinition.Parse, ref index);
-            }
-            else if (MatchSignature(tokens, index, FUNCTION_SIG))
-            {
-                Add(tokens, CTFunction.Parse, ref index);
-            }
-            else
-            {
-                Errors.Add(new CTLexerException(tokens[index], $"Unexpected token '{tokens[index].Span}' in root scope."));
-                index = SkipUntilSemicolon(tokens, index);
+                case CTokenType.SEMICOLON:
+                    index++;
+                    continue;
+                case CTokenType.STRUCT:
+                    Add(tokens, CTStructDefinition.Parse, ref index);
+                    break;
+                default:
+                {
+                    if (MatchSignature(tokens, index, FUNCTION_SIG))
+                    {
+                        Add(tokens, CTFunction.Parse, ref index);
+                    }
+                    else
+                    {
+                
+                        Error(new CTLexerException(tokens[index], $"Unexpected token '{tokens[index].Span}' in root scope."));
+                        index = SkipUntilRightBrace(tokens, index);
+                    }
+
+                    break;
+                }
             }
         }
     }
@@ -66,8 +79,8 @@ public class CTRoot : CTNode
         }
         catch (CTLexerException ex)
         {
-            Errors.Add(ex);
-            index = SkipUntilSemicolon(tokens, index);
+            Error(ex);
+            index = SkipUntilRightBrace(tokens, index);
         }
     }
     
@@ -92,9 +105,9 @@ public class CTRoot : CTNode
         return true;
     }
 
-    private static int SkipUntilSemicolon(IReadOnlyList<CToken> tokens, int index)
+    private static int SkipUntilRightBrace(IReadOnlyList<CToken> tokens, int index)
     {
-        while (index < tokens.Count && tokens[index].Type != CTokenType.SEMICOLON)
+        while (index < tokens.Count && tokens[index].Type != CTokenType.RIGHT_BRACE)
             index++;
 
         index++;

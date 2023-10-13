@@ -58,6 +58,14 @@ namespace Riten.CScript.Compiler
         void Compile(CTCompiler compiler, Scope scope, int level)
         {
             FunctionPtr = compiler.Instructions.Count;
+
+            var args = Function.Arguments.Values;
+
+            for (int i = 0; i < args.Count; ++i)
+            {
+                var argument = args[i];
+                scope.RegisterNewVariable(argument.ArgumentName.Span.Content, 1, level);
+            }
             
             RegisterAllLocalVariables(scope, Function.BlockStatement);
 

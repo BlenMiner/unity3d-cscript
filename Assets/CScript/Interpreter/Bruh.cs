@@ -19,10 +19,10 @@ public class Bruh : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKey(KeyCode.F))
         {
             Profiler.BeginSample("CScript C++");
-            var res = Interoperability.ExecuteFunctionFunc(m_scriptPtr, m_script.GetFunctionPtr("test"));
+            var res = Interoperability.ExecuteFunctionFunc(m_scriptPtr, m_script.GetFunctionPtr("test2"));
             Profiler.EndSample();
             
             Debug.Log(res);

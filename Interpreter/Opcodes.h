@@ -3,7 +3,7 @@
 #include "Stack.h"
 
 #define NEXT_INSTRUCTION program->IP++
-#define OPCODE_DEFINITION(name) void name##_IMP(Program* program)
+#define OPCODE_DEFINITION(name) void name##_IMP(Program* program, Stack* stack, const SaturatedInstruction& context)
 
 #define OPCODE_LIST \
     OPCODE(JMP_IF_TOP_ZERO)\
@@ -108,20 +108,41 @@ struct Instruction
 	long long operand4;
 };
 
+struct Program;
+
+struct SaturatedInstruction
+{
+	SaturatedInstruction()
+	{
+		function = nullptr;
+		opcode = 0;
+		operand1 = 0;
+		operand2 = 0;
+		operand3 = 0;
+		operand4 = 0;
+	}
+
+	void InitializeSaturatedInstruction(const Instruction& instruction);
+
+	void (*function)(Program*, Stack*, const SaturatedInstruction&);
+
+	int opcode;
+	long long operand1;
+	long long operand2;
+	long long operand3;
+	long long operand4;
+};
+
 struct Program
 {
 	Program(const Instruction* instructions, const int instructionsCount)
 	{
 		this->stack = new Stack();
-		this->instructions = new Instruction[instructionsCount];
-		this->opcodes = new int[instructionsCount];
+		this->instructions = new SaturatedInstruction[instructionsCount];
 		this->instructionsCount = instructionsCount;
 
 		for (auto i = 0; i < instructionsCount; i++)
-		{
-			this->instructions[i] = instructions[i];
-			this->opcodes[i] = instructions[i].opcode;
-		}
+			this->instructions[i].InitializeSaturatedInstruction(instructions[i]);
 
 		IP = 0;
 	}
@@ -130,14 +151,12 @@ struct Program
 	{
 		delete this->stack;
 		delete[] this->instructions;
-		delete[] this->opcodes;
 	}
 
 	Stack* stack;
-	Instruction* instructions;
-	int* opcodes;
+	SaturatedInstruction* instructions;
 	int instructionsCount;
-	long long IP;
+	unsigned long long IP;
 };
 
 #define OPCODE(x) OPCODE_DEFINITION(x);

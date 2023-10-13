@@ -31,6 +31,17 @@ namespace Riten.CScript.Compiler
         public readonly Scope ParentScope;
 
         private int m_stackPtrOffset;
+        
+        public CompiledFunction GetFunction(string name)
+        {
+            if (Functions.TryGetValue(name, out var fn))
+                return fn;
+
+            if (ParentScope != null)
+                return ParentScope.GetFunction(name);
+
+            throw new Exception($"Couldn't find function '{name}' during compilation.");
+        }
 
         public Scope(CTCompiler compiler, Scope parent, bool canAccessParentScope)
         {
@@ -91,6 +102,20 @@ namespace Riten.CScript.Compiler
         }
     }
     
+    public struct TempFunctionCall
+    {
+        public string FunctionName;
+        public int ExpectedArgumentCount;
+        public Scope Scope;
+        
+        public TempFunctionCall(string functionName, int expectedArgumentCount, Scope scope)
+        {
+            FunctionName = functionName;
+            ExpectedArgumentCount = expectedArgumentCount;
+            Scope = scope;
+        }
+    }
+    
     public class CTCompiler
     {
         public readonly HashSet<Scope> AllScopes = new ();
@@ -100,6 +125,8 @@ namespace Riten.CScript.Compiler
         public readonly Scope GlobalScope;
         
         private readonly CTRoot m_root;
+        
+        public readonly Dictionary<int, TempFunctionCall> TemporaryFunctionCalls = new ();
 
         public CTCompiler(CTRoot root)
         {
@@ -134,11 +161,26 @@ namespace Riten.CScript.Compiler
                 case CTSwapStatement statement:
                     return new CompiledSwapStatement(this, scope, statement, level);
                 
-                case CTStructDefinition definition:
-                    return null; // return new CompiledStructDefinition(this, scope, definition, level);
+                /*case CTStructDefinition definition:
+                    return null; // return new CompiledStructDefinition(this, scope, definition, level);*/
                 
                 default: throw new NotImplementedException($"Instruction {node.GetType().Name} not implemented");
             }
+        }
+        
+        private void FixTempFunctionCalls()
+        {
+            foreach (var (key, value) in TemporaryFunctionCalls)
+            {
+                var fn = value.Scope.GetFunction(value.FunctionName);
+                
+                if (fn.Function.Arguments.Values.Count != value.ExpectedArgumentCount)
+                    throw new Exception($"Function {value.FunctionName} expects {fn.Function.Arguments.Values.Count} arguments, but {value.ExpectedArgumentCount} were provided.");
+                
+                Instructions[key] = new Instruction(Opcodes.CALL, fn.FunctionPtr, value.ExpectedArgumentCount);
+            }
+            
+            TemporaryFunctionCalls.Clear();
         }
         
         public Instruction[] Compile()
@@ -147,6 +189,8 @@ namespace Riten.CScript.Compiler
 
             for (var i = 0; i < m_root.Children.Count; i++)
                 CompileNode(GlobalScope, m_root.Children[i], 0);
+
+            FixTempFunctionCalls();
 
             CTOptimizer.Optimize(this, Instructions);
             return Instructions.ToArray();
