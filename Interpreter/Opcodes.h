@@ -7,8 +7,10 @@
 
 #define OPCODE_LIST \
     OPCODE(JMP_IF_TOP_ZERO)\
+    OPCODE(JMP_IF_ZERO)\
     OPCODE(JMP)\
     OPCODE(CALL)\
+    OPCODE(CALL_ARGS)\
     OPCODE(RETURN)\
     OPCODE(STOP)\
 	\
@@ -18,7 +20,8 @@
     OPCODE(ADD_SPTR_SPTR_INTO_SPTR)\
 	\
     OPCODE(PUSH_CONST) \
-    OPCODE(PUSH_FROM_SPTR) \
+    OPCODE(PUSH_SPTR) \
+    OPCODE(PUSH_SPTR_AND_CONST) \
     OPCODE(PUSH_CONST_TO_SPTR) \
     \
     OPCODE(POP) \
@@ -35,6 +38,8 @@
 	OPCODE(REPEAT_END)\
 	\
     OPCODE(COPY_FROM_SPTR_TO_SPTR) \
+	\
+    OPCODE(LESS_OR_EQUAL) \
 
 
 #define OPCODE(x) x,
@@ -120,6 +125,7 @@ struct SaturatedInstruction
 		operand2 = 0;
 		operand3 = 0;
 		operand4 = 0;
+		safeToExecuteBlindlyCount = 0;
 	}
 
 	void InitializeSaturatedInstruction(const Instruction& instruction);
@@ -131,6 +137,7 @@ struct SaturatedInstruction
 	long long operand2;
 	long long operand3;
 	long long operand4;
+	int safeToExecuteBlindlyCount;
 };
 
 struct Program
@@ -142,9 +149,42 @@ struct Program
 		this->instructionsCount = instructionsCount;
 
 		for (auto i = 0; i < instructionsCount; i++)
+		{
 			this->instructions[i].InitializeSaturatedInstruction(instructions[i]);
+			this->instructions[i].safeToExecuteBlindlyCount = GetSafeToExecuteBlindlyCount(instructions, i);
+			
+		}
 
 		IP = 0;
+	}
+
+	int GetSafeToExecuteBlindlyCount(const Instruction* instructions, int index)
+	{
+		auto count = 0;
+
+		for (auto i = index; i < instructionsCount; i++)
+		{
+			Opcodes opcode = (Opcodes)instructions[i].opcode;
+
+			switch (opcode)
+			{
+				case Opcodes::JMP_IF_TOP_ZERO:
+				case Opcodes::JMP_IF_ZERO:
+				case Opcodes::JMP:
+				case Opcodes::REPEAT:
+				case Opcodes::REPEAT_CONST:
+				case Opcodes::REPEAT_SPTR:
+				case Opcodes::CALL:
+				case Opcodes::RETURN:
+					return count;
+
+				default:
+					count++;
+			}
+
+		}
+
+		return count;
 	}
 
 	~Program()

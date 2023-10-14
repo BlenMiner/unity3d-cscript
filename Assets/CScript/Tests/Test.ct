@@ -1,16 +1,14 @@
-long customAdd(long a, long b)
+long fib(long n)
 {
-    return a + b + 5;
-}
-
-long test2()
-{
-    long res = 10;
-    
-    repeat (10)
+    if (n <= 1)
     {
-        res = customAdd(res, 5);
+        return n;
     }
 
-    return res;
+    return fib(n + -1) + fib(n + -2);
+}
+  
+long test2()
+{ 
+    return fib(30);
 }

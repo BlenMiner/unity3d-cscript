@@ -82,6 +82,13 @@ namespace Riten.CScript.Lexer
                     i = statement.Index;
                     break;
                 }
+                case CTokenType.IF:
+                {
+                    var statement = CTIfStatement.Parse(tokens, i);
+                    statements.Add(statement.Node as CTStatement);
+                    i = statement.Index;
+                    break;
+                }
                 case CTokenType.REPEAT:
                 {
                     var statement = CTRepeatBlockStatement.Parse(tokens, i);

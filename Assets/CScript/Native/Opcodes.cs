@@ -3,8 +3,10 @@
     public enum Opcodes : int
     {
         JMP_IF_TOP_ZERO,
+        JMP_IF_ZERO,
         JMP,
         CALL,
+        CALL_ARGS,
         RETURN,
         STOP,
         ADD,
@@ -12,7 +14,8 @@
         ADD_CONST_TO_SPTR,
         ADD_SPTR_SPTR_INTO_SPTR,
         PUSH_CONST,
-        PUSH_FROM_SPTR,
+        PUSH_SPTR,
+        PUSH_SPTR_AND_CONST,
         PUSH_CONST_TO_SPTR,
         POP,
         POP_TO_SPTR,
@@ -25,19 +28,6 @@
         REPEAT_SPTR,
         REPEAT_END,
         COPY_FROM_SPTR_TO_SPTR,
+        LESS_OR_EQUAL,
     }
-    
-    public enum Registers : int
-    {
-        R0 = 0,
-        R1,
-        R2,
-        R3,
-        R4,
-        R5,
-        R6,
-        R7,
-        R8,
-        R9,
-    };
 }

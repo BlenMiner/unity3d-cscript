@@ -68,7 +68,8 @@ namespace Riten.CScript.Compiler
                 StackPointer = stackPtr,
                 StackSize = stackSize,
                 ReadCount = 0,
-                WriteCount = 0
+                WriteCount = 0,
+                Level = level
             });
             
             m_stackPtrOffset += stackSize;
@@ -161,6 +162,9 @@ namespace Riten.CScript.Compiler
                 case CTSwapStatement statement:
                     return new CompiledSwapStatement(this, scope, statement, level);
                 
+                case CTIfStatement statement:
+                    return new CompiledIfStatement(this, scope, statement, level);
+                
                 /*case CTStructDefinition definition:
                     return null; // return new CompiledStructDefinition(this, scope, definition, level);*/
                 
@@ -177,7 +181,7 @@ namespace Riten.CScript.Compiler
                 if (fn.Function.Arguments.Values.Count != value.ExpectedArgumentCount)
                     throw new Exception($"Function {value.FunctionName} expects {fn.Function.Arguments.Values.Count} arguments, but {value.ExpectedArgumentCount} were provided.");
                 
-                Instructions[key] = new Instruction(Opcodes.CALL, fn.FunctionPtr, value.ExpectedArgumentCount);
+                Instructions[key] = new Instruction((Opcodes)Instructions[key].Opcode, fn.FunctionPtr, value.ExpectedArgumentCount);
             }
             
             TemporaryFunctionCalls.Clear();

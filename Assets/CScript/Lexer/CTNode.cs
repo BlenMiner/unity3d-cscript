@@ -22,7 +22,8 @@ public enum CTNodeType
     StructDefinition,
     FieldDeclaration,
     FunctionCall,
-    FunctionArgs
+    FunctionArgs,
+    IfStatement
 }
 
 public abstract class CTStatement : CTNode

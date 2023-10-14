@@ -3,6 +3,7 @@
 
 #include "../Interpreter/Main.h"
 #include "../Interpreter/Stack.h"
+#include <iostream>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -54,6 +55,64 @@ namespace InterpreterTests
 			Assert::AreEqual('A', a);
 
 			delete stack;
+		}
+
+		TEST_METHOD(PUSH_SPTR_AND_CONST)
+		{
+			Instruction instructions[]{
+				Instruction(Opcodes::RESERVE, 1),
+				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 42, 0),
+				Instruction(Opcodes::PUSH_SPTR_AND_CONST, 0, 69),
+				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 40, 0),
+				Instruction(Opcodes::STOP),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+			long long res = ExecuteProgram(program);
+
+			Assert::AreEqual((long long)3, program->stack->GetPushedSize());
+			Assert::AreEqual((long long)69, program->stack->POP());
+			Assert::AreEqual((long long)42, program->stack->POP());
+			Assert::AreEqual((long long)40, program->stack->POP());
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(CONDITION_LESS_OR_EQUAL_FALSE)
+		{
+			Instruction instructions[]{
+				Instruction(Opcodes::PUSH_CONST, 69),
+				Instruction(Opcodes::PUSH_CONST, 5),
+				Instruction(Opcodes::LESS_OR_EQUAL),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+			long long res = ExecuteProgram(program);
+
+			Assert::AreEqual((long long)1, program->stack->GetPushedSize());
+			Assert::AreEqual((long long)0, res);
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(CONDITION_LESS_OR_EQUAL_TRUE)
+		{
+			Instruction instructions[]{
+				Instruction(Opcodes::PUSH_CONST, 5),
+				Instruction(Opcodes::PUSH_CONST, 69),
+				Instruction(Opcodes::LESS_OR_EQUAL),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+			long long res = ExecuteProgram(program);
+
+			Assert::AreEqual((long long)1, program->stack->GetPushedSize());
+			Assert::AreEqual((long long)1, res);
+
+			FreeProgram(program);
 		}
 
 		TEST_METHOD(EXECUTE_FOR_ENHANCED)
@@ -130,7 +189,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::ADD_CONST, 69),
 				Instruction(Opcodes::RETURN),
 
-				Instruction(Opcodes::CALL, 0, 0),
+				Instruction(Opcodes::CALL, 0),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
@@ -152,7 +211,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::RETURN),
 
 				Instruction(Opcodes::PUSH_CONST, 69),
-				Instruction(Opcodes::CALL, 0, 1),
+				Instruction(Opcodes::CALL_ARGS, 0, 1),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
@@ -178,7 +237,7 @@ namespace InterpreterTests
 
 				Instruction(Opcodes::PUSH_CONST, 69),
 				Instruction(Opcodes::PUSH_CONST, 2),
-				Instruction(Opcodes::CALL, 0, 2),
+				Instruction(Opcodes::CALL_ARGS, 0, 2),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
@@ -201,9 +260,9 @@ namespace InterpreterTests
 				Instruction(Opcodes::RESERVE, 1),
 				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 10, 0),
 				Instruction(Opcodes::REPEAT_CONST, 10),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0),
 				Instruction(Opcodes::PUSH_CONST, 5),
-				Instruction(Opcodes::CALL, 11, 2),
+				Instruction(Opcodes::CALL_ARGS, 11, 2),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
 				Instruction(Opcodes::REPEAT_END),
 				Instruction(Opcodes::RETURN),
@@ -211,8 +270,8 @@ namespace InterpreterTests
 				Instruction(Opcodes::RETURN),
 
 				Instruction(Opcodes::RESERVE, 2),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 1),
+				Instruction(Opcodes::PUSH_SPTR, 0),
+				Instruction(Opcodes::PUSH_SPTR, 1),
 				Instruction(Opcodes::ADD_CONST, 5),
 				Instruction(Opcodes::ADD),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
@@ -233,7 +292,7 @@ namespace InterpreterTests
 
 			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
 
-			Assert::AreEqual((long long)(69), program->stack->PEEK());
+			Assert::AreEqual((long long)(110), program->stack->PEEK());
 
 			FreeProgram(program);
 		}
@@ -259,7 +318,6 @@ namespace InterpreterTests
 			Assert::AreEqual((long long)(10), program->stack->POP());
 
 			FreeProgram(program);
-
 		}
 
 		TEST_METHOD(RESERVE_ONLY)
@@ -292,7 +350,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::RESERVE, 1),
 				Instruction(Opcodes::PUSH_CONST, 5),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0),
 				Instruction(Opcodes::POP_TO_SPTR, 6),
 				Instruction(Opcodes::RETURN),
 				Instruction(Opcodes::DISCARD, 1),
@@ -338,7 +396,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::RESERVE, 2),
 				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 69, 0),
 				Instruction(Opcodes::COPY_FROM_SPTR_TO_SPTR, 0, 1),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 1),
+				Instruction(Opcodes::PUSH_SPTR, 1),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
@@ -376,8 +434,8 @@ namespace InterpreterTests
 		{
 			Instruction instructions[]{
 				Instruction(Opcodes::RESERVE, 2),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 0),
-				Instruction(Opcodes::PUSH_FROM_SPTR, 1),
+				Instruction(Opcodes::PUSH_SPTR, 0),
+				Instruction(Opcodes::PUSH_SPTR, 1),
 				Instruction(Opcodes::ADD_CONST, 5),
 				Instruction(Opcodes::ADD),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
@@ -389,7 +447,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::RESERVE, 0),
 				Instruction(Opcodes::PUSH_CONST, 169),
 				Instruction(Opcodes::PUSH_CONST, 1),
-				Instruction(Opcodes::CALL, 0, 2),
+				Instruction(Opcodes::CALL_ARGS, 0, 2),
 				Instruction(Opcodes::RETURN),
 				Instruction(Opcodes::DISCARD, 0),
 				Instruction(Opcodes::RETURN),
@@ -403,6 +461,183 @@ namespace InterpreterTests
 			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
 
 			Assert::AreEqual((long long)(169 + 1 + 5), program->stack->PEEK());
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(TEST_CONDITIONAL_JUMP_IF_ZERO_TRUE_COND)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::PUSH_CONST, 2),
+				Instruction(Opcodes::PUSH_CONST, 69),
+				Instruction(Opcodes::LESS_OR_EQUAL),
+				Instruction(Opcodes::JMP_IF_ZERO, 5),
+				Instruction(Opcodes::PUSH_CONST, 42),
+				Instruction(Opcodes::STOP),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteProgram(program);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
+			Assert::AreEqual((long long)(42), program->stack->PEEK());
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(TEST_CONDITIONAL_JUMP_IF_ZERO_FALSE_COND)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::PUSH_CONST, 69),
+				Instruction(Opcodes::PUSH_CONST, 2),
+				Instruction(Opcodes::LESS_OR_EQUAL),
+				Instruction(Opcodes::JMP_IF_ZERO, 5),
+				Instruction(Opcodes::PUSH_CONST, 42),
+				Instruction(Opcodes::STOP),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteProgram(program);
+
+			Assert::AreEqual((long long)(0), program->stack->GetPushedSize());
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(EXECUTE_FUNCTION_RECCURSIVE)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::RESERVE, 1, 0, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::PUSH_CONST, 1, 0, 0, 0),
+				Instruction(Opcodes::LESS_OR_EQUAL, 0, 0, 0, 0),
+				Instruction(Opcodes::JMP_IF_ZERO, 7, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::JMP, 7, 0, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_CONST, -1, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_CONST, -2, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::ADD, 0, 0, 0, 0),
+				Instruction(Opcodes::POP_TO_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::DISCARD, 1, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+
+				Instruction(Opcodes::RESERVE, 0, 0, 0, 0),
+				Instruction(Opcodes::PUSH_CONST, 2, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::STOP, 0, 0, 0, 0),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+
+			program->IP = 18;
+
+			Assert::AreEqual(4, program->instructions[0].safeToExecuteBlindlyCount, L"SAFE TO EXECUTE");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(0), program->stack->GetPushedSize(), L"RESERVE");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize(), L"PUSH_CONST");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(2), program->stack->GetPushedSize(), L"CALL");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(3), program->stack->GetPushedSize(), L"RESERVE");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(4), program->stack->GetPushedSize(), L"PUSH_SPTR");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(5), program->stack->GetPushedSize(), L"PUSH_CONST");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(4), program->stack->GetPushedSize(), L"LESS_OR_EQUAL");
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((long long)(3), program->stack->GetPushedSize(), L"JMP_IF_ZERO");
+			Assert::AreEqual((unsigned long long)(7), program->IP, L"JMP_IF_ZERO, IP");
+
+			while (program->IP < arrSize)
+				ExecuteInstruction(program, program->stack);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize(), L"RETURN");
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(EXECUTE_FUNCTION_RECCURSIVE_FREEDOM)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::RESERVE, 1, 0, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::PUSH_CONST, 1, 0, 0, 0),
+				Instruction(Opcodes::LESS_OR_EQUAL, 0, 0, 0, 0),
+				Instruction(Opcodes::JMP_IF_ZERO, 7, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::JMP, 7, 0, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_CONST, -1, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_CONST, -2, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::ADD, 0, 0, 0, 0),
+				Instruction(Opcodes::POP_TO_SPTR, 0, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::DISCARD, 1, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+
+				Instruction(Opcodes::RESERVE, 0, 0, 0, 0),
+				Instruction(Opcodes::PUSH_CONST, 30, 0, 0, 0),
+				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::DISCARD, 0, 0, 0, 0),
+				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
+				Instruction(Opcodes::STOP, 0, 0, 0, 0),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteFunction(program, 18);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
+			Assert::AreEqual((long long)(832040), program->stack->PEEK());
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(SIMPLE_JMP)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::JMP, 1),
+				Instruction(Opcodes::STOP),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((unsigned long long)(1), program->IP);
+			ExecuteInstruction(program, program->stack);
+			Assert::AreEqual((unsigned long long)(arrSize), program->IP);
 
 			FreeProgram(program);
 		}

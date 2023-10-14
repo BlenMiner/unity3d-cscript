@@ -1,8 +1,11 @@
 #pragma once
+#include <exception>
+
+#define SAFE_CHECKS
 
 struct Stack
 {
-	Stack(long long size = 512 * 512)
+	Stack(long long size = 1024 * 1024)
 	{
 		this->size = size;
 		data = new long long[size];

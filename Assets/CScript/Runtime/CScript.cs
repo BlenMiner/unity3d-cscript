@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Riten.CScript.Compiler;
 using UnityEngine;
 using Riten.CScript.Native;
@@ -143,6 +144,20 @@ public class CScript : ScriptableObject
         }
 
         return m_compiled.Length;
+    }
+
+    [ContextMenu("Log Program")]
+    public void LogProgram()
+    {
+        var sb = new StringBuilder();
+
+        for (int i = 0; i < m_compiled.Length; i++)
+        {
+            var inst = m_compiled[i];
+            sb.AppendLine($"Instruction(Opcodes::{(Opcodes)inst.Opcode}, {inst.Operand}, {inst.Operand2}, {inst.Operand3}, {inst.Operand4}),");
+        }
+        
+        Debug.Log(sb.ToString());
     }
 }
 

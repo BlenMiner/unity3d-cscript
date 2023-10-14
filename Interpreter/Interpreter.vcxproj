@@ -158,6 +158,7 @@ xcopy /Y /I "$(ProjectDir)*.h" "$(SolutionDir)..\Assets\CScript\C++"
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ConditionOperations.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FlowOperations.cpp" />
     <ClCompile Include="MathOperations.cpp" />

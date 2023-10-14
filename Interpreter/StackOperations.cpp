@@ -8,7 +8,7 @@ OPCODE_DEFINITION(PUSH_CONST)
 }
 OPCODE_DEFINITION(POP)			
 {
-	stack->POP_DISCARD();
+	stack->SP++;
 	NEXT_INSTRUCTION;
 }
 OPCODE_DEFINITION(DUP) 
@@ -34,7 +34,7 @@ OPCODE_DEFINITION(PUSH_CONST_TO_SPTR)
 	stack->data[stack->SCOPE_SP - context.operand2] = context.operand1;
 	NEXT_INSTRUCTION;
 }
-OPCODE_DEFINITION(PUSH_FROM_SPTR)
+OPCODE_DEFINITION(PUSH_SPTR)
 {
 	stack->PUSH(stack->data[stack->SCOPE_SP - context.operand1]);
 	NEXT_INSTRUCTION;
@@ -50,6 +50,13 @@ OPCODE_DEFINITION(COPY_FROM_SPTR_TO_SPTR)
 	auto stackData = stack->data;
 	auto scope = stack->SCOPE_SP;
 	stackData[scope - context.operand2] = stackData[scope - context.operand1];
+	NEXT_INSTRUCTION;
+}
+
+OPCODE_DEFINITION(PUSH_SPTR_AND_CONST)
+{
+	stack->PUSH(stack->data[stack->SCOPE_SP - context.operand1]);
+	stack->PUSH(context.operand2);
 	NEXT_INSTRUCTION;
 }
 

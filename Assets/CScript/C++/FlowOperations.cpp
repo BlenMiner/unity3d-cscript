@@ -5,31 +5,40 @@
 
 OPCODE_DEFINITION(JMP)				
 {
-	program->IP += context.operand1;
+	program->IP = context.operand1;
 }
 
 OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	
 { 
 	if (stack->PEEK() == 0)
-		 program->IP += context.operand1;
+		 program->IP = context.operand1;
+	else NEXT_INSTRUCTION;
+}
+
+OPCODE_DEFINITION(JMP_IF_ZERO)
+{
+	if (stack->POP() == 0)
+		program->IP = context.operand1;
 	else NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(CALL)
 {
-	// move memory to two spaces ahead
-	if (context.operand2 > 0)
-	{
-		auto start = stack->SP - 2;
-		memmove(stack->data + start, stack->data + stack->SP, context.operand2 * sizeof(long long));
-		stack->SP += context.operand2;
-	}
-
 	stack->PUSH(stack->SCOPE_SP);
 	stack->PUSH(program->IP);
 
 	program->IP = context.operand1;
 	stack->SCOPE_SP = stack->SP - 1;
+}
+
+OPCODE_DEFINITION(CALL_ARGS)
+{
+	// move memory to two spaces ahead
+	auto start = stack->SP - 2;
+	memmove(stack->data + start, stack->data + stack->SP, context.operand2 * sizeof(long long));
+	stack->SP += context.operand2;
+
+	CALL_IMP(program, stack, context);
 }
 
 OPCODE_DEFINITION(RETURN)

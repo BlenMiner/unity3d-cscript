@@ -50,13 +50,22 @@ void ExecuteInstruction(Program* program, Stack* stack)
 {
 	auto inst = program->instructions[program->IP];
 	inst.function(program, stack, inst);
-	// JUMP_TABLE[program->opcodes[program->IP]](program, stack);
+	
+/*#define OPCODE(x) case x: x##_IMP(program, stack, inst); break;
+	switch (inst.opcode)
+	{
+		OPCODE_LIST
+	}
+#undef OPCODE*/
+}
+
+void ExecuteInstruction(Program* program, Stack* stack, SaturatedInstruction& inst)
+{
+	inst.function(program, stack, inst);
 }
 
 long long ExecuteProgram(Program* program)
 {
-	// auto program = *programPtr;
-
 	const auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
@@ -64,7 +73,13 @@ long long ExecuteProgram(Program* program)
 	stackPtr->ResetSP();
 
 	while (program->IP < length)
-		ExecuteInstruction(program, stackPtr);
+	{
+		auto inst = program->instructions[program->IP];
+		ExecuteInstruction(program, stackPtr, inst);
+
+		/*for (int i = 1; i < inst.safeToExecuteBlindlyCount; i++)
+			ExecuteInstruction(program, stackPtr);*/
+	}
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
@@ -85,7 +100,7 @@ long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
 
 long long ExecuteFunction(Program* program, const int functionIP)
 {
-	auto length = program->instructionsCount;
+	auto length = (unsigned long long)program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
 	stackPtr->ResetSP();
@@ -95,9 +110,6 @@ long long ExecuteFunction(Program* program, const int functionIP)
 
 	program->IP = functionIP;
 	stackPtr->SCOPE_SP = stackPtr->SP - 1;
-
-	/*stackPtr->PUSH(stackPtr->SCOPE_SP);
-	stackPtr->PUSH(length);*/
 
 	while (program->IP < length)
 		ExecuteInstruction(program, stackPtr);

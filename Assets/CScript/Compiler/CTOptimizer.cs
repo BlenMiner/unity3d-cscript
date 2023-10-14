@@ -7,12 +7,13 @@ namespace Riten.CScript.Compiler
     public static class CTOptimizer
     {
         static readonly CTOptimizerRule[] s_rules = {
-            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD),
+            new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_SPTR, Opcodes.PUSH_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
+            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD), 
             new (OptimizePushConstAddConst, Opcodes.PUSH_CONST, Opcodes.ADD_CONST),
             new (OptimizePushConstToSPTR, Opcodes.PUSH_CONST, Opcodes.POP_TO_SPTR),
-            new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.POP_TO_SPTR),
-            new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.PUSH_FROM_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
+            new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_SPTR, Opcodes.POP_TO_SPTR),
             new (Optimize_PushConst_Repeat, Opcodes.PUSH_CONST, Opcodes.REPEAT),
+            new (Optimize_PushSptr_With_Const, Opcodes.PUSH_SPTR, Opcodes.PUSH_CONST),
         };
         
         static void OffsetAllPointers(CTCompiler cmp, int pastValue, int offset)
@@ -29,15 +30,30 @@ namespace Riten.CScript.Compiler
             for (int i = 0; i < cmp.Instructions.Count; i++)
             {
                 var inst = cmp.Instructions[i];
-                
-                if (inst.Opcode == (int)Opcodes.CALL && inst.Operand >= pastValue)
+
+                switch (inst.Opcode)
                 {
-                    inst.Operand += offset;
-                    cmp.Instructions[i] = inst;
+                    case (int)Opcodes.CALL when inst.Operand > pastValue:
+                    case (int)Opcodes.CALL_ARGS when inst.Operand > pastValue:
+                    case (int)Opcodes.JMP when inst.Operand > pastValue:
+                    case (int)Opcodes.JMP_IF_ZERO when inst.Operand > pastValue:
+                        inst.Operand += offset;
+                        cmp.Instructions[i] = inst;
+                        break;
                 }
             }
         }
         
+        static void Optimize_PushSptr_With_Const(CTCompiler cmp,List<Instruction> program, int index)
+        {
+            var sptr = program[index].Operand;
+            var constValue = program[index + 1].Operand;
+            
+            program.RemoveRange(index, 2);
+            program.Insert(index, new Instruction(Opcodes.PUSH_SPTR_AND_CONST, sptr, constValue));
+            OffsetAllPointers(cmp, index, -1);
+        }
+
         static void Optimize_PushConst_Repeat(CTCompiler cmp,List<Instruction> program, int index)
         {
             long value = program[index].Operand;

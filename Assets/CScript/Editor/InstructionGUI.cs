@@ -17,7 +17,7 @@ namespace Riten.CScript.Editor
             string content = opcode.ToString();
             
             if (opcode is Opcodes.ADD or Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
-                or Opcodes.RETURN)
+                or Opcodes.RETURN or Opcodes.LESS_OR_EQUAL)
             {
                 GUI.Label(position, content);
                 return;
@@ -27,7 +27,8 @@ namespace Riten.CScript.Editor
 
             switch (opcode)
             {
-                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR or Opcodes.CALL:
+                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR or Opcodes.CALL_ARGS
+                    or Opcodes.PUSH_SPTR_AND_CONST:
                     content += ", " + operand2;
                     break;
                 

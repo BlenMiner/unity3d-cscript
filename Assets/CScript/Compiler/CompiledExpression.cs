@@ -52,6 +52,10 @@ namespace Riten.CScript.Compiler
                     Compiler.Instructions.Add(new Instruction(Opcodes.ADD));
                     break;
                 
+                case CTokenType.LESS_THAN_OR_EQUAL:
+                    Compiler.Instructions.Add(new Instruction(Opcodes.LESS_OR_EQUAL));
+                    break;
+                
                 default: throw new NotImplementedException($"Operator {op.Operator.Type} not implemented");
             }
         }
@@ -76,16 +80,17 @@ namespace Riten.CScript.Compiler
                     break;
                 case CTFunctionCallExpression val:
                     var fnName = val.Identifier.Span.Content;
-                    // var function = Scope.GetFunction(val.Identifier.Span.Content);
-                    //int expectedArgCount = function.Function.Arguments.Values.Count;
                     int actualArgCount = val.Arguments.Values.Length;
                     
                     for (int i = 0; i < actualArgCount; i++)
                         _ = new CompiledExpression(Compiler, Scope, val.Arguments.Values[i], level);
                     
                     Compiler.TemporaryFunctionCalls.Add(Compiler.Instructions.Count, new TempFunctionCall(fnName, actualArgCount, Scope));
-                    Compiler.Instructions.Add(new Instruction(Opcodes.CALL, -1, actualArgCount));
-                    
+
+                    Compiler.Instructions.Add(actualArgCount > 0
+                        ? new Instruction(Opcodes.CALL_ARGS, -1, actualArgCount)
+                        : new Instruction(Opcodes.CALL, -1, actualArgCount));
+
                     break;
                 case CTConstValue val:
                     var value = GetConstValue(val);
@@ -93,7 +98,7 @@ namespace Riten.CScript.Compiler
                     break;
                 case CTVariable var:
                     var variable = Scope.ReadVariable(var.Identifier.Span.Content, level);
-                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_FROM_SPTR, variable.StackPointer));
+                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_SPTR, variable.StackPointer));
                     break;
                 default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression during compilation.");
             }

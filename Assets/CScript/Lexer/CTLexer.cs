@@ -27,6 +27,8 @@ public enum CTokenType
     BIT_NOT,
     LESS_THAN,
     MORE_THAN,
+    LESS_THAN_OR_EQUAL,
+    MORE_THAN_OR_EQUAL,
     BOOLEAN_AND,
     BOOLEAN_OR,
     BOOLEAN_NOT,
@@ -34,7 +36,9 @@ public enum CTokenType
     EQUALS_EQUALS,
     REPEAT,
     SWAP,
-    STRUCT
+    STRUCT,
+    IF,
+    ELSE
 }
 
 [Serializable]
@@ -327,6 +331,16 @@ public class CTLexer
 
                     end += 3;
                 }
+                else if (end + 1 < source.Length && source[end + 1] == '=')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.LESS_THAN_OR_EQUAL,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
+
+                    end += 2;
+                }
                 else
                 {
                     m_tokens.Add(new CToken
@@ -344,6 +358,16 @@ public class CTLexer
                     m_tokens.Add(new CToken
                     {
                         Type = CTokenType.BIT_SHIFT_RIGHT,
+                        Span = source.ToCSpan(start, end + 2),
+                    });
+
+                    end += 2;
+                }
+                else if (end + 1 < source.Length && source[end + 1] == '=')
+                {
+                    m_tokens.Add(new CToken
+                    {
+                        Type = CTokenType.MORE_THAN_OR_EQUAL,
                         Span = source.ToCSpan(start, end + 2),
                     });
 
@@ -404,6 +428,20 @@ public class CTLexer
     {
         switch (span.Content)
         {
+            case "if":
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.IF,
+                    Span = span,
+                });
+                break;
+            case "else":
+                m_tokens.Add(new CToken
+                {
+                    Type = CTokenType.ELSE,
+                    Span = span,
+                });
+                break;
             case "struct":
                 m_tokens.Add(new CToken
                 {

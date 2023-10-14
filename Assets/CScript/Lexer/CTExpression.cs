@@ -110,6 +110,8 @@ public class CTExpression : CTNode
                 case CTokenType.BOOLEAN_OR:
                 case CTokenType.BOOLEAN_NOT:
                 case CTokenType.EQUALS_EQUALS:
+                case CTokenType.LESS_THAN_OR_EQUAL:
+                case CTokenType.MORE_THAN_OR_EQUAL:
 
                     if (!wasOperator && token.Options == CTOptions.UNARY)
                         wasOperator = true;
