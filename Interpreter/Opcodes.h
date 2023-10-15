@@ -5,44 +5,72 @@
 #define NEXT_INSTRUCTION program->IP++
 #define OPCODE_DEFINITION(name) void name##_IMP(Program* program, Stack* stack, const SaturatedInstruction& context)
 
+#define INT_OPCODE(X) \
+OPCODE(X##_I8, char)\
+OPCODE(X##_I16, short)\
+OPCODE(X##_I32, int)\
+OPCODE(X##_I64, long long)
+
+#define FLOAT_OPCODE(X) \
+OPCODE(X##_F32, float)\
+OPCODE(X##_F64, double)
+
 #define OPCODE_LIST \
-    OPCODE(JMP_IF_TOP_ZERO)\
-    OPCODE(JMP_IF_ZERO)\
-    OPCODE(JMP)\
-    OPCODE(CALL)\
-    OPCODE(CALL_ARGS)\
-    OPCODE(RETURN)\
-    OPCODE(STOP)\
+    OPCODE(JMP_IF_TOP_ZERO, void)\
+    OPCODE(JMP_IF_ZERO, void)\
+    OPCODE(JMP, void)\
+    OPCODE(CALL, void)\
+    OPCODE(CALL_ARGS, void)\
+    OPCODE(RETURN, void)\
+    OPCODE(STOP, void)\
 	\
-	OPCODE(ADD)\
-    OPCODE(ADD_CONST)\
-    OPCODE(ADD_CONST_TO_SPTR)\
-    OPCODE(ADD_SPTR_SPTR_INTO_SPTR)\
+	INT_OPCODE(ADD)\
+	INT_OPCODE(SUB)\
+	INT_OPCODE(MULT)\
+	INT_OPCODE(DIV)\
+	INT_OPCODE(MODULO)\
 	\
-    OPCODE(PUSH_CONST) \
-    OPCODE(PUSH_SPTR) \
-    OPCODE(PUSH_SPTR_AND_CONST) \
-    OPCODE(PUSH_CONST_TO_SPTR) \
+	FLOAT_OPCODE(ADD)\
+	FLOAT_OPCODE(SUB)\
+	FLOAT_OPCODE(MULT)\
+	FLOAT_OPCODE(DIV)\
+	FLOAT_OPCODE(MODULO)\
+	\
+	INT_OPCODE(BIT_AND)\
+	INT_OPCODE(BIT_OR)\
+	INT_OPCODE(BIT_NOT)\
+	INT_OPCODE(BIT_XOR)\
+	INT_OPCODE(BIT_SHIFT_LEFT)\
+	INT_OPCODE(BIT_SHIFT_RIGHT)\
+	\
+    OPCODE(ADD_CONST, void)\
+    OPCODE(ADD_CONST_TO_SPTR, void)\
+    OPCODE(ADD_SPTR_SPTR_INTO_SPTR, void)\
+	\
+    OPCODE(PUSH_CONST, void) \
+    OPCODE(PUSH_SPTR, void) \
+    OPCODE(PUSH_SPTR_AND_CONST, void) \
+    OPCODE(PUSH_CONST_TO_SPTR, void) \
     \
-    OPCODE(POP) \
-    OPCODE(POP_TO_SPTR) \
-    OPCODE(RESERVE) \
-    OPCODE(DISCARD) \
+    OPCODE(POP, void) \
+    OPCODE(POP_TO_SPTR, void) \
+    OPCODE(RESERVE, void) \
+    OPCODE(DISCARD, void) \
     \
-    OPCODE(DUP)\
-    OPCODE(SWAP_SPTR_SPTR)\
+    OPCODE(DUP, void)\
+    OPCODE(SWAP_SPTR_SPTR, void)\
 	\
-	OPCODE(REPEAT)\
-	OPCODE(REPEAT_CONST)\
-	OPCODE(REPEAT_SPTR)\
-	OPCODE(REPEAT_END)\
+	OPCODE(REPEAT, void)\
+	OPCODE(REPEAT_CONST, void)\
+	OPCODE(REPEAT_SPTR, void)\
+	OPCODE(REPEAT_END, void)\
 	\
-    OPCODE(COPY_FROM_SPTR_TO_SPTR) \
+    OPCODE(COPY_FROM_SPTR_TO_SPTR, void) \
 	\
-    OPCODE(LESS_OR_EQUAL) \
+    OPCODE(LESS_OR_EQUAL, void) \
 
 
-#define OPCODE(x) x,
+#define OPCODE(x, y) x,
 enum Opcodes : int
 {
     OPCODE_LIST
@@ -152,7 +180,6 @@ struct Program
 		{
 			this->instructions[i].InitializeSaturatedInstruction(instructions[i]);
 			this->instructions[i].safeToExecuteBlindlyCount = GetSafeToExecuteBlindlyCount(instructions, i);
-			
 		}
 
 		IP = 0;
@@ -199,7 +226,7 @@ struct Program
 	unsigned long long IP;
 };
 
-#define OPCODE(x) OPCODE_DEFINITION(x);
+#define OPCODE(x, y) OPCODE_DEFINITION(x);
 
 OPCODE_LIST
 

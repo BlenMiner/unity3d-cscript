@@ -24,21 +24,32 @@ OPCODE_DEFINITION(JMP_IF_ZERO)
 
 OPCODE_DEFINITION(CALL)
 {
-	stack->PUSH(stack->SCOPE_SP);
-	stack->PUSH(program->IP);
+	auto stackData = stack->data;
+	auto SP = stack->SP;
+
+	stackData[--SP] = stack->SCOPE_SP;
+	stackData[--SP] = program->IP;
 
 	program->IP = context.operand1;
-	stack->SCOPE_SP = stack->SP - 1;
+	stack->SCOPE_SP = SP - 1;
+	stack->SP = SP;
 }
 
 OPCODE_DEFINITION(CALL_ARGS)
 {
-	// move memory to two spaces ahead
-	auto start = stack->SP - 2;
-	memmove(stack->data + start, stack->data + stack->SP, context.operand2 * sizeof(long long));
-	stack->SP += context.operand2;
+	auto stackData = stack->data;
+	auto SP = stack->SP;
 
-	CALL_IMP(program, stack, context);
+	// move memory to two spaces ahead
+	memmove(stackData + SP - 2, stackData + SP, context.operand2 * sizeof(long long));
+	SP += context.operand2;
+
+	stackData[--SP] = stack->SCOPE_SP;
+	stackData[--SP] = program->IP;
+
+	program->IP = context.operand1;
+	stack->SCOPE_SP = SP - 1;
+	stack->SP = SP;
 }
 
 OPCODE_DEFINITION(RETURN)

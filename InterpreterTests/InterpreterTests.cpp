@@ -13,6 +13,52 @@ namespace InterpreterTests
 	{
 	public:
 
+		TEST_METHOD(TEST_ADD_FLOAT)
+		{
+			float a = 69.f;
+			float b = 42.f;
+
+			Instruction instructions[]{
+
+				Instruction(Opcodes::PUSH_CONST, *(long long*)&a),
+				Instruction(Opcodes::PUSH_CONST, *(long long*)&b),
+				Instruction(Opcodes::ADD_F32),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteProgram(program);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
+
+			auto res = program->stack->PEEK();
+
+			Assert::AreEqual((float)(69.f + 42.f), *(float*)&res);
+
+			FreeProgram(program);
+		}
+
+		TEST_METHOD(TEST_ADD_BYTE_OVERFLOW)
+		{
+			Instruction instructions[]{
+
+				Instruction(Opcodes::PUSH_CONST, 255),
+				Instruction(Opcodes::PUSH_CONST, 1),
+				Instruction(Opcodes::ADD_I8),
+			};
+
+			int arrSize = sizeof(instructions) / sizeof(Instruction);
+			auto program = CreateProgram(instructions, arrSize);
+
+			ExecuteProgram(program);
+
+			Assert::AreEqual((long long)(1), program->stack->GetPushedSize());
+			Assert::AreEqual((long long)(0), program->stack->PEEK());
+
+			FreeProgram(program);
+		}
+
 		TEST_METHOD(OPCODE_VALIDATION)
 		{
 			Assert::AreEqual(ValidateOpcode(Opcodes::POP, "POP"), 1);
@@ -232,7 +278,7 @@ namespace InterpreterTests
 		{
 			Instruction instructions[]{
 				Instruction(Opcodes::RESERVE, 2),
-				Instruction(Opcodes::ADD),
+				Instruction(Opcodes::ADD_I64),
 				Instruction(Opcodes::RETURN),
 
 				Instruction(Opcodes::PUSH_CONST, 69),
@@ -273,7 +319,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::PUSH_SPTR, 0),
 				Instruction(Opcodes::PUSH_SPTR, 1),
 				Instruction(Opcodes::ADD_CONST, 5),
-				Instruction(Opcodes::ADD),
+				Instruction(Opcodes::ADD_I64),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
 				Instruction(Opcodes::DISCARD, 1),
 				Instruction(Opcodes::RETURN),
@@ -416,7 +462,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::RESERVE, 2),
 				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 5, 0),
 				Instruction(Opcodes::PUSH_CONST_TO_SPTR, 70, 1),
-				Instruction(Opcodes::ADD),
+				Instruction(Opcodes::ADD_I64),
 			};
 
 			int arrSize = sizeof(instructions) / sizeof(Instruction);
@@ -437,7 +483,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::PUSH_SPTR, 0),
 				Instruction(Opcodes::PUSH_SPTR, 1),
 				Instruction(Opcodes::ADD_CONST, 5),
-				Instruction(Opcodes::ADD),
+				Instruction(Opcodes::ADD_I64),
 				Instruction(Opcodes::POP_TO_SPTR, 0),
 				Instruction(Opcodes::DISCARD, 1),
 				Instruction(Opcodes::RETURN),
@@ -527,7 +573,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
 				Instruction(Opcodes::ADD_CONST, -2, 0, 0, 0),
 				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
-				Instruction(Opcodes::ADD, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_I64, 0, 0, 0, 0),
 				Instruction(Opcodes::POP_TO_SPTR, 0, 0, 0, 0),
 				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
 				Instruction(Opcodes::DISCARD, 1, 0, 0, 0),
@@ -597,7 +643,7 @@ namespace InterpreterTests
 				Instruction(Opcodes::PUSH_SPTR, 0, 0, 0, 0),
 				Instruction(Opcodes::ADD_CONST, -2, 0, 0, 0),
 				Instruction(Opcodes::CALL_ARGS, 0, 1, 0, 0),
-				Instruction(Opcodes::ADD, 0, 0, 0, 0),
+				Instruction(Opcodes::ADD_I64, 0, 0, 0, 0),
 				Instruction(Opcodes::POP_TO_SPTR, 0, 0, 0, 0),
 				Instruction(Opcodes::RETURN, 0, 0, 0, 0),
 				Instruction(Opcodes::DISCARD, 1, 0, 0, 0),

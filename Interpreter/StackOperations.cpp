@@ -55,8 +55,13 @@ OPCODE_DEFINITION(COPY_FROM_SPTR_TO_SPTR)
 
 OPCODE_DEFINITION(PUSH_SPTR_AND_CONST)
 {
-	stack->PUSH(stack->data[stack->SCOPE_SP - context.operand1]);
-	stack->PUSH(context.operand2);
+	auto data = stack->data;
+	auto SP = stack->SP;
+
+	data[--SP] = data[stack->SCOPE_SP + context.operand1];
+	data[--SP] = context.operand2;
+
+	stack->SP = SP;
 	NEXT_INSTRUCTION;
 }
 

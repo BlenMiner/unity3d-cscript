@@ -1,10 +1,11 @@
+#include "Main.h"
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 #include "Main.h"
 
 #include <string.h>
 
-#define OPCODE(X) & X##_IMP,
+#define OPCODE(X, Y) & X##_IMP,
 
 void (*JUMP_TABLE[])(Program*, Stack*, const SaturatedInstruction&)
 {
@@ -13,7 +14,7 @@ void (*JUMP_TABLE[])(Program*, Stack*, const SaturatedInstruction&)
 
 #undef OPCODE
 
-#define OPCODE(x) #x,
+#define OPCODE(x, y) #x,
 const char* OPCODE_NAMES[] = {
 	OPCODE_LIST
 };
@@ -46,6 +47,40 @@ void FreeProgram(const Program* program)
 	delete program;
 }
 
+void ExecuteInstruction(Program* program, Stack* stack, SaturatedInstruction& inst)
+{
+	inst.function(program, stack, inst);
+}
+
+void ExecuteInstructionImp(Program* program, SaturatedInstruction* instructions, Stack* stack)
+{
+	auto inst = instructions[program->IP];
+	inst.function(program, stack, inst);
+}
+
+void DoExecute(Program* program, const unsigned long long length, Stack* stackPtr)
+{
+	auto instructions = program->instructions;
+
+	while (program->IP < length)
+	{
+		auto inst = instructions[program->IP];
+		inst.function(program, stackPtr, inst);
+
+		switch (inst.safeToExecuteBlindlyCount)
+		{
+		case 8: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 7: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 6: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 5: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 4: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 3: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 2: ExecuteInstructionImp(program, instructions, stackPtr);
+			break;
+		}
+	}
+}
+
 void ExecuteInstruction(Program* program, Stack* stack)
 {
 	auto inst = program->instructions[program->IP];
@@ -59,11 +94,6 @@ void ExecuteInstruction(Program* program, Stack* stack)
 #undef OPCODE*/
 }
 
-void ExecuteInstruction(Program* program, Stack* stack, SaturatedInstruction& inst)
-{
-	inst.function(program, stack, inst);
-}
-
 long long ExecuteProgram(Program* program)
 {
 	const auto length = program->instructionsCount;
@@ -72,14 +102,7 @@ long long ExecuteProgram(Program* program)
 	program->IP = 0;
 	stackPtr->ResetSP();
 
-	while (program->IP < length)
-	{
-		auto inst = program->instructions[program->IP];
-		ExecuteInstruction(program, stackPtr, inst);
-
-		/*for (int i = 1; i < inst.safeToExecuteBlindlyCount; i++)
-			ExecuteInstruction(program, stackPtr);*/
-	}
+	DoExecute(program, length, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
@@ -92,8 +115,7 @@ long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
 	program->IP = ipOffset;
 	stackPtr->ResetSP();
 
-	while (program->IP < length)
-		ExecuteInstruction(program, stackPtr);
+	DoExecute(program, length, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
@@ -111,8 +133,7 @@ long long ExecuteFunction(Program* program, const int functionIP)
 	program->IP = functionIP;
 	stackPtr->SCOPE_SP = stackPtr->SP - 1;
 
-	while (program->IP < length)
-		ExecuteInstruction(program, stackPtr);
+	DoExecute(program, length, stackPtr);
 
 	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
 }
