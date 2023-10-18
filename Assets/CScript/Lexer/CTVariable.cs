@@ -2,7 +2,7 @@
 
 namespace Riten.CScript.Lexer
 {
-    public class CTVariable : CTNode
+    public class CTVariable : CTTypedNode
     {
         public CToken Identifier;
         

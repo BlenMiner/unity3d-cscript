@@ -29,6 +29,7 @@ namespace Riten.CScript.Compiler
         
         public readonly bool CanAccessParentScope;
         public readonly Scope ParentScope;
+        public readonly CTNode ScopeCreator;
 
         private int m_stackPtrOffset;
         
@@ -43,8 +44,9 @@ namespace Riten.CScript.Compiler
             throw new Exception($"Couldn't find function '{name}' during compilation.");
         }
 
-        public Scope(CTCompiler compiler, Scope parent, bool canAccessParentScope)
+        public Scope(CTCompiler compiler, CTNode creator, Scope parent, bool canAccessParentScope)
         {
+            ScopeCreator = creator;
             compiler.AllScopes.Add(this);
             ParentScope = parent;
             CanAccessParentScope = canAccessParentScope;
@@ -60,7 +62,7 @@ namespace Riten.CScript.Compiler
             Functions.Add(function.FunctionName, function);
         }
 
-        public int RegisterNewVariable(string name, int stackSize, int level)
+        public int RegisterNewVariable(string name, string typeName, int stackSize, int level)
         {
             int stackPtr = m_stackPtrOffset;
             LocalVariables.Add(name, new LocalVariableInfo
@@ -69,7 +71,8 @@ namespace Riten.CScript.Compiler
                 StackSize = stackSize,
                 ReadCount = 0,
                 WriteCount = 0,
-                Level = level
+                Level = level,
+                TypeName = typeName
             });
             
             m_stackPtrOffset += stackSize;
@@ -132,7 +135,7 @@ namespace Riten.CScript.Compiler
         public CTCompiler(CTRoot root)
         {
             m_root = root;
-            GlobalScope = new Scope(this, null, false);
+            GlobalScope = new Scope(this, root, null, false);
         }
         
         public CompiledNode CompileNode(Scope scope, CTNode node, int level)

@@ -14,11 +14,11 @@ public struct CTNodeResponse
 }
 
 [System.Serializable]
-public class CTExpression : CTNode
+public class CTExpression : CTTypedNode
 {
-    public readonly CTNode TreeRoot;
+    public readonly CTTypedNode TreeRoot;
 
-    public CTExpression(CTNode tree) : base(CTNodeType.Expression)
+    public CTExpression(CTTypedNode tree) : base(CTNodeType.Expression)
     {
         TreeRoot = tree;
     }
@@ -40,7 +40,7 @@ public class CTExpression : CTNode
     
     public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i, string hint)
     {
-        var valueStack = new Stack<CTNode>();
+        var valueStack = new Stack<CTTypedNode>();
         var operatorStack = new Stack<CToken>();
 
         valueStack.Clear();
@@ -66,7 +66,7 @@ public class CTExpression : CTNode
                     if (wasOperator == false)
                         throw new CTLexerException(token, $"Missing operator for '{token.Span}'.");
                     
-                    CTNode nodeV;
+                    CTTypedNode nodeV;
                     
                     switch (token.Type)
                     {
@@ -78,7 +78,7 @@ public class CTExpression : CTNode
                             if (CTRoot.MatchSignature(tokens, i, CTRoot.FUNCTION_CALL_SIG))
                             {
                                 var response = CTFunctionCallExpression.Parse(tokens, i);
-                                nodeV = response.Node;
+                                nodeV = (CTTypedNode)response.Node;
                                 i = response.Index;
                             }
                             else
@@ -185,14 +185,18 @@ public class CTExpression : CTNode
         }
 
         var tree = valueStack.Pop();
-        var node = new CTExpression(tree);
+        
+        if (tree is not CTTypedNode typedNode)
+            throw new CTLexerException(tokens[i - 1], $"Invalid node in expression '{tree.GetType().Name}', expected a typed node.");
+        
+        var node = new CTExpression(typedNode);
         
         // Debug.Log(DebugLogNode(tree));
         
         return new CTNodeResponse(node, i);
     }
 
-    private static bool EmptyStack(Stack<CToken> operatorStack, Stack<CTNode> valueStack)
+    private static bool EmptyStack(Stack<CToken> operatorStack, Stack<CTTypedNode> valueStack)
     {
         var op = operatorStack.Pop();
 

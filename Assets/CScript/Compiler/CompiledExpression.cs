@@ -16,6 +16,10 @@ namespace Riten.CScript.Compiler
             ExpressionNode = expressionNode;
             Scope = scope;
             
+            ParseExpressionTypes(scope, ExpressionNode.TreeRoot, level);
+            
+            ExpressionNode.TypeName = ExpressionNode.TreeRoot.TypeName;
+            
             CompileExpression(ExpressionNode.TreeRoot, level);
 
             StackSize = 1;
@@ -23,12 +27,8 @@ namespace Riten.CScript.Compiler
         
         static long GetConstValue(CTConstValue op)
         {
-            if (long.TryParse(op.Token.Span.Content, out var val))
-            {
-                return val;
-            }
-            
-            throw new NotImplementedException($"Invalid value: {op.Token.Span.Content}");
+            var val = CTypeResolver.GetValueBits(op.TypeName, op.ValueString);
+            return val;
         }
         
         void CompileUnaryOperator(CTOperator op, CTConstValue value)
@@ -49,7 +49,7 @@ namespace Riten.CScript.Compiler
             switch (op.Operator.Type)
             {
                 case CTokenType.PLUS:
-                    Compiler.Instructions.Add(new Instruction(Opcodes.ADD));
+                    CTypeResolver.CompileAdd(Compiler, op.Left.TypeName, op.Right.TypeName);
                     break;
                 
                 case CTokenType.LESS_THAN_OR_EQUAL:
@@ -57,6 +57,38 @@ namespace Riten.CScript.Compiler
                     break;
                 
                 default: throw new NotImplementedException($"Operator {op.Operator.Type} not implemented");
+            }
+        }
+
+        void ParseExpressionTypes(Scope scope, CTTypedNode node, int level)
+        {
+            switch (node)
+            {
+                case CTOperator op:
+
+                    ParseExpressionTypes(scope, op.Left, level);
+                    ParseExpressionTypes(scope, op.Right, level);
+                    
+                    var typeLeft = op.Left.TypeName;
+                    var typeRight = op.Right.TypeName;
+                    
+                    if (typeLeft != typeRight)
+                        throw new CTLexerException(op.Operator, $"Cannot perform operation on different types: {typeLeft} and {typeRight}.");
+                    
+                    node.TypeName = typeLeft;
+                    
+                    break;
+                case CTVariable variable:
+                    variable.TypeName = scope.ReadVariable(variable.Identifier.Span.Content, level).TypeName;
+                    break;
+                
+                case CTFunctionCallExpression fnCall:
+                    fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.FunctionType.Span.Content;
+                    break;
+
+                case CTConstValue: break;
+                
+                default: throw new NotImplementedException($"Not implemented: node '{node.GetType().Name}' in expression during compilation type checking.");
             }
         }
         

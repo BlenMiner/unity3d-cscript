@@ -1,14 +1,9 @@
-long fib(long n)
+i64 fib(i64 n)
 {
-    if (n <= 1)
-    {
-        return n;
-    }
-
-    return fib(n + -1) + fib(n + -2);
+    return n + 69i64;
 }
-  
-long test2()
+
+i64 test2()
 { 
     return fib(30);
 }

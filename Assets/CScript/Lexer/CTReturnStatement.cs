@@ -21,7 +21,10 @@ namespace Riten.CScript.Lexer
                 throw new CTLexerException(returnToken, $"Expected 'return', got '{returnToken.Span}'.");
             
             if (i >= tokens.Count)
-                throw new CTLexerException(returnToken, "Expected expression, got end of file.");
+                throw new CTLexerException(returnToken, "Expected expression or semicolon after return keyword, got end of file.");
+            
+            if (tokens[i].Type == CTokenType.SEMICOLON)
+                return new CTNodeResponse(new CTReturnStatement(returnToken, null), i + 1);
             
             var expression = CTExpression.Parse(tokens, i, "return statement");
             

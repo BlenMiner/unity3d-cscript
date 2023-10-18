@@ -69,6 +69,8 @@ void DoExecute(Program* program, const unsigned long long length, Stack* stackPt
 
 		switch (inst.safeToExecuteBlindlyCount)
 		{
+		case 10: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 9: ExecuteInstructionImp(program, instructions, stackPtr);
 		case 8: ExecuteInstructionImp(program, instructions, stackPtr);
 		case 7: ExecuteInstructionImp(program, instructions, stackPtr);
 		case 6: ExecuteInstructionImp(program, instructions, stackPtr);

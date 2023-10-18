@@ -1,7 +1,7 @@
 {
     "name": "CScript.Lexer",
     "rootNamespace": "",
-    "references": [],
+    "references": ["GUID:4726b91a66a9060438ad9e1403f8d2cd"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

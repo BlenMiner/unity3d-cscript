@@ -10,7 +10,7 @@
 
 #define INT_OPERATION(X, Y, Z) OPCODE_DEFINITION(X) {\
 	auto stackData = stack->data; auto sp = stack->SP;\
-	stackData[sp + 1] = (Y)((Y)stackData[sp + 1] Z (Y)stackData[sp++]);\
+	stackData[sp + 1] = (Y)(stackData[sp + 1] Z stackData[sp++]);\
 	stack->SP = sp; NEXT_INSTRUCTION;\
 }
 

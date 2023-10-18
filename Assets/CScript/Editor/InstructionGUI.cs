@@ -16,7 +16,7 @@ namespace Riten.CScript.Editor
             
             string content = opcode.ToString();
             
-            if (opcode is Opcodes.ADD or Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
+            if (opcode.ToString().StartsWith("ADD") || opcode is Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
                 or Opcodes.RETURN or Opcodes.LESS_OR_EQUAL)
             {
                 GUI.Label(position, content);

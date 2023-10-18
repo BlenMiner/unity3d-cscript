@@ -7,8 +7,8 @@ namespace Riten.CScript.Compiler
     public static class CTOptimizer
     {
         static readonly CTOptimizerRule[] s_rules = {
-            new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_SPTR, Opcodes.PUSH_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
-            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD), 
+            /*new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_SPTR, Opcodes.PUSH_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
+            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD), */
             new (OptimizePushConstAddConst, Opcodes.PUSH_CONST, Opcodes.ADD_CONST),
             new (OptimizePushConstToSPTR, Opcodes.PUSH_CONST, Opcodes.POP_TO_SPTR),
             new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_SPTR, Opcodes.POP_TO_SPTR),

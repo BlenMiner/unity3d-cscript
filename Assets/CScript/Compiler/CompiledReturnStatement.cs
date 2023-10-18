@@ -1,5 +1,4 @@
-﻿using System;
-using Riten.CScript.Lexer;
+﻿using Riten.CScript.Lexer;
 using Riten.CScript.Native;
 
 namespace Riten.CScript.Compiler
@@ -12,11 +11,26 @@ namespace Riten.CScript.Compiler
         public CompiledReturnStatement(CTCompiler compiler, Scope scope, CTReturnStatement node, int level) : base(compiler)
         {
             Scope = scope;
+
+            if (scope.ScopeCreator is not CTFunction function)
+                throw new CTLexerException(node.ReturnToken, "Return statement isn't inside a function.");
             
-            Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
+            if (node.ReturnExpression != null)
+                Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
+
+            if (node.ReturnExpression == null)
+            {
+                if (function.TypeName != null)
+                    throw new CTLexerException(node.ReturnToken, "Return type should be void.");
+            }
+            else if (node.ReturnExpression.TypeName != function.TypeName)
+            {
+                throw new CTLexerException(node.ReturnToken, 
+                    $"Return statement is of type {node.ReturnExpression.TypeName} but function expects {function.TypeName}.");
+            }
             
             if (Scope.LocalVariables.Count > 0)
-                Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, (long)0));
+                Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, 0));
 
             if (Expression.StackSize >= scope.StackSize)
             {

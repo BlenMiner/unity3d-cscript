@@ -1,6 +1,5 @@
 using Riten.CScript.Lexer;
 using Riten.CScript.Native;
-using UnityEngine;
 
 namespace Riten.CScript.Compiler
 {
@@ -11,6 +10,7 @@ namespace Riten.CScript.Compiler
         public int Level;
         public int ReadCount;
         public int WriteCount;
+        public string TypeName;
     }
     
     public class CompiledFunction : CompiledNode
@@ -29,7 +29,7 @@ namespace Riten.CScript.Compiler
             Function = function;
             FunctionName = function.FunctionName.Span.Content;
 
-            var fnScope = new Scope(compiler, scope, false);
+            var fnScope = new Scope(compiler, function, scope, false);
             
             Compile(compiler, fnScope, level);
         }
@@ -39,7 +39,12 @@ namespace Riten.CScript.Compiler
             switch (statement)
             {
                 case CTDeclareStatement declare:
-                    scope.RegisterNewVariable(declare.Identifier.Span.Content, 1, level);
+                    scope.RegisterNewVariable(
+                        declare.Identifier.Span.Content, 
+                        declare.Type.TypeToken.Span.Content, 
+                        1,
+                        level
+                    );
                     break;
                 case CTRepeatBlockStatement repeatBlock:
                     RegisterAllLocalVariables(scope, repeatBlock.BlockStatement, level + 1);
@@ -64,7 +69,11 @@ namespace Riten.CScript.Compiler
             for (int i = 0; i < args.Count; ++i)
             {
                 var argument = args[i];
-                scope.RegisterNewVariable(argument.ArgumentName.Span.Content, 1, level);
+                scope.RegisterNewVariable(
+                    argument.ArgumentName.Span.Content,
+                    argument.ArgumentType.Span.Content,
+                    1, level
+                );
             }
             
             RegisterAllLocalVariables(scope, Function.BlockStatement);

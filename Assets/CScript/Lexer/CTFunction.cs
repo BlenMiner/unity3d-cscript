@@ -131,11 +131,11 @@ public class CTArgumentsDeclaration : CTStatement
     }
 }
 
-public class CTFunction : CTNode
+public class CTFunction : CTTypedNode
 {
     public CToken FunctionType;
     public CToken FunctionName;
-    public CTArgumentsDeclaration Arguments;
+    public readonly CTArgumentsDeclaration Arguments;
     public readonly CTBlockStatement BlockStatement;
 
     public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement) : base(CTNodeType
@@ -145,6 +145,7 @@ public class CTFunction : CTNode
         FunctionName = name;
         Arguments = args;
         BlockStatement = blockStatement;
+        TypeName = FunctionType.Span.Content;
     }
 
     public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)

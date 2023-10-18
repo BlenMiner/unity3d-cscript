@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace Riten.CScript.Lexer
 {
-    public class CTFunctionCallExpression : CTNode
+    public class CTFunctionCallExpression : CTTypedNode
     {
         public readonly CToken Identifier;
         public readonly CTFunctionCallArgs Arguments;

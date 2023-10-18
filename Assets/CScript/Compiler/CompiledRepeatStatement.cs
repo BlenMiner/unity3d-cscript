@@ -18,7 +18,7 @@ namespace Riten.CScript.Compiler
             // Top of the stack is the count
             comp.Instructions.Add(new Instruction(Opcodes.REPEAT));
             
-            Body = new CompiledBlock(Compiler, new Scope(comp, scope, true), node.BlockStatement, level + 1);
+            Body = new CompiledBlock(Compiler, new Scope(comp, scope.ScopeCreator, scope, true), node.BlockStatement, level + 1);
             
             comp.Instructions.Add(new Instruction(Opcodes.REPEAT_END));
         }
