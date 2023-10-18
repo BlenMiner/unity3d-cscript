@@ -1,10 +1,9 @@
-i64 fib(i64 n)
+u8 fib(u8 n)
 {
-    i32 test = 69;
-    return n + 69i64;
+    return n + 240;
 }
 
-i64 test2()
+u8 test2()
 { 
     return fib(30);
 }

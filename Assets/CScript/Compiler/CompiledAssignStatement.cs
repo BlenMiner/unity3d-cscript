@@ -20,7 +20,6 @@ namespace Riten.CScript.Compiler
             statement.Expression.SetTypeHint(variable.TypeName);
             Expression = (CompiledExpression)compiler.CompileNode(scope, statement.Expression, level);
             
-
             if (Expression.TypeName != variable.TypeName)
             {
                 throw new CTLexerException(statement.Identifier, 

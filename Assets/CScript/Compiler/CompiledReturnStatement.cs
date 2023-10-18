@@ -15,6 +15,8 @@ namespace Riten.CScript.Compiler
             if (scope.ScopeCreator is not CTFunction function)
                 throw new CTLexerException(node.ReturnToken, "Return statement isn't inside a function.");
             
+            node.ReturnExpression.SetTypeHint(function.TypeName);
+            
             if (node.ReturnExpression != null)
                 Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
 
@@ -32,13 +34,20 @@ namespace Riten.CScript.Compiler
             if (Scope.LocalVariables.Count > 0)
                 Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, 0));
 
-            if (Expression.StackSize >= scope.StackSize)
+            if (Expression != null)
             {
-                Compiler.Instructions.Add(new Instruction(Opcodes.RETURN));
+                if (Expression.StackSize >= scope.StackSize)
+                {
+                    Compiler.Instructions.Add(new Instruction(Opcodes.RETURN));
+                }
+                else
+                {
+                    Compiler.Instructions.Add(new Instruction(Opcodes.DISCARD, scope.StackSize - Expression.StackSize));
+                    Compiler.Instructions.Add(new Instruction(Opcodes.RETURN));
+                }
             }
             else
             {
-                Compiler.Instructions.Add(new Instruction(Opcodes.DISCARD, scope.StackSize - Expression.StackSize));
                 Compiler.Instructions.Add(new Instruction(Opcodes.RETURN));
             }
         }

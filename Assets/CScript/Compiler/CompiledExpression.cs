@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Riten.CScript.Lexer;
 using Riten.CScript.Native;
+using UnityEngine;
 
 namespace Riten.CScript.Compiler
 {
@@ -77,6 +79,31 @@ namespace Riten.CScript.Compiler
                     
                     var typeLeft = op.Left.TypeName;
                     var typeRight = op.Right.TypeName;
+
+                    switch (typeLeft)
+                    {
+                        case "?" when typeRight == "?":
+                            op.Left.TypeName = m_typeHint;
+                            op.Right.TypeName = m_typeHint;
+                        
+                            typeLeft = m_typeHint;
+                            typeRight = m_typeHint;
+                            break;
+                        case "?":
+                            op.Left.TypeName = typeRight;
+                            typeLeft = typeRight;
+                            break;
+                        default:
+                        {
+                            if (typeRight == "?")
+                            {
+                                op.Right.TypeName = typeLeft;
+                                typeRight = typeLeft;
+                            }
+
+                            break;
+                        }
+                    }
                     
                     if (typeLeft != typeRight)
                         throw new CTLexerException(op.Operator, $"Cannot perform operation on different types: {typeLeft} and {typeRight}.");
@@ -92,12 +119,8 @@ namespace Riten.CScript.Compiler
                     fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.FunctionType.Span.Content;
                     break;
 
-                case CTConstValue constVal:
-                {
-                    if (constVal.TypeName == "?")
-                        constVal.TypeName = m_typeHint;
+                case CTConstValue:
                     break;
-                }
                 
                 default: throw new NotImplementedException($"Not implemented: node '{node.GetType().Name}' in expression during compilation type checking.");
             }
@@ -124,9 +147,12 @@ namespace Riten.CScript.Compiler
                 case CTFunctionCallExpression val:
                     var fnName = val.Identifier.Span.Content;
                     int actualArgCount = val.Arguments.Values.Length;
+                    // List<CompiledExpression> compiledArgs = new(val.Arguments.Values.Length);
                     
                     for (int i = 0; i < actualArgCount; i++)
-                        _ = new CompiledExpression(Compiler, Scope, val.Arguments.Values[i], level);
+                        new CompiledExpression(Compiler, Scope, val.Arguments.Values[i], level);
+
+                    // ValidateFunctionArgumentTypes(val.Arguments.Values, compiledArgs);
                     
                     Compiler.TemporaryFunctionCalls.Add(Compiler.Instructions.Count, new TempFunctionCall(fnName, actualArgCount, Scope));
 
@@ -146,5 +172,17 @@ namespace Riten.CScript.Compiler
                 default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression during compilation.");
             }
         }
+
+        /*private void ValidateFunctionArgumentTypes(CTExpression[] argumentsValues, List<CompiledExpression> compiledArgs)
+        {
+            for (int i = 0; i < argumentsValues.Length; i++)
+            {
+                var arg = argumentsValues[i];
+                var compiledArg = compiledArgs[i];
+                
+                if (arg.TypeName != compiledArg.TypeName)
+                    throw new CTLexerException(default, $"Argument {i} of function call expects type {arg.TypeName} but got {compiledArg.TypeName}.");
+            }
+        }*/
     }
 }

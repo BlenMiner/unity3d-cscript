@@ -108,9 +108,9 @@ namespace Riten.CScript.Compiler
     
     public struct TempFunctionCall
     {
-        public string FunctionName;
-        public int ExpectedArgumentCount;
-        public Scope Scope;
+        public readonly string FunctionName;
+        public readonly int ExpectedArgumentCount;
+        public readonly Scope Scope;
         
         public TempFunctionCall(string functionName, int expectedArgumentCount, Scope scope)
         {
@@ -180,11 +180,16 @@ namespace Riten.CScript.Compiler
             foreach (var (key, value) in TemporaryFunctionCalls)
             {
                 var fn = value.Scope.GetFunction(value.FunctionName);
-                
+
                 if (fn.Function.Arguments.Values.Count != value.ExpectedArgumentCount)
-                    throw new Exception($"Function {value.FunctionName} expects {fn.Function.Arguments.Values.Count} arguments, but {value.ExpectedArgumentCount} were provided.");
-                
+                {
+                    throw new Exception(
+                        $"Function {value.FunctionName} expects {fn.Function.Arguments.Values.Count} arguments, but {value.ExpectedArgumentCount} were provided.");
+                }
+
                 Instructions[key] = new Instruction((Opcodes)Instructions[key].Opcode, fn.FunctionPtr, value.ExpectedArgumentCount);
+                
+                
             }
             
             TemporaryFunctionCalls.Clear();
