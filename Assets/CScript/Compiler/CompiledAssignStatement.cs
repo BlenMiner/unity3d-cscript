@@ -11,12 +11,21 @@ namespace Riten.CScript.Compiler
         public CompiledAssignStatement(CTCompiler compiler, Scope scope, CTAssignStatement statement, int level) : base(compiler)
         {
             Scope = scope;
-            Expression = compiler.CompileNode(scope, statement.Expression, level) as CompiledExpression;
 
             var variableIdentifier = statement.Identifier.Span.Content;
             
             var variable = scope.ReadVariable(variableIdentifier, level);
             scope.RegisterWrite(variableIdentifier);
+            
+            statement.Expression.SetTypeHint(variable.TypeName);
+            Expression = (CompiledExpression)compiler.CompileNode(scope, statement.Expression, level);
+            
+
+            if (Expression.TypeName != variable.TypeName)
+            {
+                throw new CTLexerException(statement.Identifier, 
+                    $"Assigning value of type {Expression.TypeName} but declared as {variable.TypeName}.");
+            }
             
             Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, variable.StackPointer));
         }
