@@ -1,5 +1,6 @@
 i64 fib(i64 n)
 {
+    i32 test = 69;
     return n + 69i64;
 }
 

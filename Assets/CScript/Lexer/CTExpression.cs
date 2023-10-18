@@ -185,11 +185,7 @@ public class CTExpression : CTTypedNode
         }
 
         var tree = valueStack.Pop();
-        
-        if (tree is not CTTypedNode typedNode)
-            throw new CTLexerException(tokens[i - 1], $"Invalid node in expression '{tree.GetType().Name}', expected a typed node.");
-        
-        var node = new CTExpression(typedNode);
+        var node = new CTExpression(tree);
         
         // Debug.Log(DebugLogNode(tree));
         
@@ -271,4 +267,8 @@ public class CTExpression : CTTypedNode
         return str;
     }
 
+    public void SetTypeHint(string spanContent)
+    {
+        TypeName = spanContent;
+    }
 }

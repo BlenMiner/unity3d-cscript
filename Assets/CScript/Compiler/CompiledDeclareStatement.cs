@@ -11,7 +11,16 @@ namespace Riten.CScript.Compiler
         public CompiledDeclareStatement(CTCompiler compiler, Scope scope, CTDeclareStatement statement, int level) : base(compiler)
         {
             Scope = scope;
-            Expression = compiler.CompileNode(scope, statement.Expression, level) as CompiledExpression;
+            
+            statement.Expression.SetTypeHint(statement.Type.TypeToken.Span.Content);
+            
+            Expression = (CompiledExpression)compiler.CompileNode(scope, statement.Expression, level);
+
+            if (Expression.ExpressionNode.TypeName != statement.Type.TypeToken.Span.Content)
+            {
+                throw new CTLexerException(statement.Type.TypeToken, 
+                    $"Assigning value of type {Expression.ExpressionNode.TypeName} but declared as {statement.Type.TypeToken.Span.Content}.");
+            }
 
             var variableIdentifier = statement.Identifier.Span.Content;
             

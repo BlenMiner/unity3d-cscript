@@ -10,7 +10,6 @@ namespace Riten.CScript.Lexer
         public CTConstValue(CToken token) : base(CTNodeType.Value)
         {
             ValueString = token.Span.Content;
-            
             TypeName = GetTypeFromConstant(ref ValueString);
             Token = token;
         }
@@ -26,7 +25,7 @@ namespace Riten.CScript.Lexer
                 }
             }
             
-            return constant.Contains('.') ? "f64" : "i64";
+            return constant.Contains('.') ? "f64" : "?";
         }
     }
 

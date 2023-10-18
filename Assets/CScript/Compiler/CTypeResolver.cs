@@ -26,9 +26,14 @@ namespace Riten.CScript.Compiler
             }
         }
         
-        public static long GetValueBits(string typeName, string value)
+        public static long GetValueBits(string typeName, string value, bool negateResult)
         {
             var internalType = ResolveType(typeName);
+            
+            if (negateResult)
+                value = $"-{value}";
+
+            value = value.Replace("--", "").Replace("++", "");
 
             return internalType switch
             {

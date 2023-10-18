@@ -9,6 +9,9 @@ namespace Riten.CScript.Compiler
         public readonly CTExpression ExpressionNode;
         public readonly Scope Scope;
         public readonly long StackSize;
+        public string TypeName => ExpressionNode.TypeName;
+        
+        private readonly string m_typeHint;
         
         public CompiledExpression(CTCompiler compiler, Scope scope, CTExpression expressionNode, int level)
             :base(compiler)
@@ -16,18 +19,20 @@ namespace Riten.CScript.Compiler
             ExpressionNode = expressionNode;
             Scope = scope;
             
-            ParseExpressionTypes(scope, ExpressionNode.TreeRoot, level);
+            m_typeHint = expressionNode.TypeName ?? "i64";
             
-            ExpressionNode.TypeName = ExpressionNode.TreeRoot.TypeName;
+            ParseExpressionTypes(scope, ExpressionNode.TreeRoot, level);
+
+            expressionNode.TypeName = ExpressionNode.TreeRoot.TypeName;
             
             CompileExpression(ExpressionNode.TreeRoot, level);
 
             StackSize = 1;
         }
         
-        static long GetConstValue(CTConstValue op)
+        long GetConstValue(CTConstValue value, bool negateResult)
         {
-            var val = CTypeResolver.GetValueBits(op.TypeName, op.ValueString);
+            var val = CTypeResolver.GetValueBits(value.TypeName, value.ValueString, negateResult);
             return val;
         }
         
@@ -37,7 +42,8 @@ namespace Riten.CScript.Compiler
             {
                 case CTokenType.PLUS: break;
                 case CTokenType.MINUS:
-                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, -GetConstValue(value)));
+                    
+                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, GetConstValue(value, true)));
                     break;
                 
                 default: throw new NotImplementedException($"Unary operator {op.Operator.Type} not implemented");
@@ -86,7 +92,12 @@ namespace Riten.CScript.Compiler
                     fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.FunctionType.Span.Content;
                     break;
 
-                case CTConstValue: break;
+                case CTConstValue constVal:
+                {
+                    if (constVal.TypeName == "?")
+                        constVal.TypeName = m_typeHint;
+                    break;
+                }
                 
                 default: throw new NotImplementedException($"Not implemented: node '{node.GetType().Name}' in expression during compilation type checking.");
             }
@@ -125,7 +136,7 @@ namespace Riten.CScript.Compiler
 
                     break;
                 case CTConstValue val:
-                    var value = GetConstValue(val);
+                    var value = GetConstValue(val, false);
                     Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, value));
                     break;
                 case CTVariable var:
