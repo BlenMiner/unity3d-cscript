@@ -1,138 +1,98 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace Riten.CScript.Lexer
 {
     public class CTFieldDeclaration : CTNode
     {
-        public CTType Type;
+        public CToken Type;
         public CToken Identifier;
         
         [CanBeNull] public CTExpression Expression;
         
-        public CTFieldDeclaration(CTType type, CToken identifier, CTExpression value) : base(CTNodeType.FieldDeclaration)
+        public CTFieldDeclaration(CToken type, CToken identifier, CTExpression value)
         {
             Type = type;
             Identifier = identifier;
             Expression = value;
         }
 
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            if (i >= tokens.Count)
-                throw new CTLexerException(tokens[i], "Expected type, got end of file in field declaration.");
+            var type = lexer.Consume(CTokenType.WORD, "Expected type for field declaration");
+            var identifier = lexer.Consume(CTokenType.WORD, "Expected identifier for field declaration");
             
-            var type = CTType.Parse(tokens, i);
-            
-            i = type.Index;
-            
-            if (i >= tokens.Count)
-                throw new CTLexerException(tokens[i], "Expected identifier, got end of file in field declaration.");
-            
-            var identifier = tokens[i++];
-            
-            if (identifier.Type != CTokenType.WORD)
-                throw new CTLexerException(identifier, $"Expected identifier, got '{identifier.Span}' in field declaration.");
-            
-            if (i >= tokens.Count)
-                throw new CTLexerException(tokens[i], "Expected '=', got end of file in field declaration.");
-            
-            var equals = tokens[i++];
-
-            if (equals.Type != CTokenType.SEMICOLON)
+            if (lexer.Peek().Type == CTokenType.EQUALS)
             {
-                if (equals.Type != CTokenType.EQUALS)
-                    throw new CTLexerException(equals, $"Expected '=', got '{equals.Span}' in field declaration.");
-
-                if (i >= tokens.Count)
-                    throw new CTLexerException(tokens[i], "Expected expression, got end of file in field declaration.");
+                lexer.Consume(CTokenType.EQUALS, "Expected '=' in field declaration");
                 
-                var expression = CTExpression.Parse(tokens, i, "field declaration");
-            
-                i = expression.Index;
-            
-                return new CTNodeResponse(new CTFieldDeclaration(
-                    (CTType)type.Node,
+                var expression = CTExpression.Parse(lexer, "field declaration");
+                
+                return new CTFieldDeclaration(
+                    type,
                     identifier,
-                    (CTExpression)expression.Node
-                ), i);
+                    (CTExpression)expression
+                );
             }
             
-            return new CTNodeResponse(new CTFieldDeclaration(
-                (CTType)type.Node,
+            return new CTFieldDeclaration(
+                type,
                 identifier,
                 null
-            ), i);
+            );
         }
     }
     
     public class CTStructDefinition : CTNode
     {
-        public CTType Identifier;
+        public CToken Identifier;
         public CTFieldDeclaration[] Fields;
         public CTFunction[] Functions;
-        
-        public CTStructDefinition(CTType identifier, CTFieldDeclaration[] fields, CTFunction[] functions) : base(CTNodeType.StructDefinition)
+
+        private CTStructDefinition(CToken identifier, CTFieldDeclaration[] fields, CTFunction[] functions)
         {
             Identifier = identifier;
             Fields = fields;
             Functions = functions;
         }
 
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            var structKeyword = tokens[i++];
+            lexer.Consume(CTokenType.STRUCT, "Expected struct keyword");
             
-            if (structKeyword.Type != CTokenType.STRUCT)
-                throw new CTLexerException(structKeyword, $"Expected 'struct', got '{structKeyword.Span}'.");
+            var identifier = lexer.Consume(CTokenType.STRUCT, "Expected struct identifier");
             
-            if (i >= tokens.Count)
-                throw new CTLexerException(structKeyword, "Expected identifier, got end of file in struct definition.");
+            lexer.Consume(CTokenType.LEFT_BRACE, "Expected '{' after struct signature");
             
-            var identifier = CTType.Parse(tokens, i);
-
-            i = identifier.Index;
-
-            var startBrace = tokens[i++];
-
-            if (startBrace.Type != CTokenType.LEFT_BRACE)
-                throw new CTLexerException(startBrace, $"Expected '{{', got '{startBrace.Span}' in struct definition.");
-
             var fields = new List<CTFieldDeclaration>();
             var functions = new List<CTFunction>();
-
-            while (i < tokens.Count)
+            
+            while (true)
             {
-                var token = tokens[i];
+                var token = lexer.Peek();
 
                 if (token.Type == CTokenType.RIGHT_BRACE) break;
 
-                if (CTRoot.MatchSignature(tokens, i, CTRoot.FUNCTION_SIG))
+                if (lexer.MatchsSignature(CTRoot.FUNCTION_SIG))
                 {
-                    var response = CTFunction.Parse(tokens, i);
-                    functions.Add((CTFunction)response.Node);
-                    i = response.Index;
+                    var response = CTFunction.Parse(lexer);
+                    functions.Add((CTFunction)response);
                 }
-                else if (CTRoot.MatchSignature(tokens, i, CTRoot.FIELD_SIG))
+                else if (lexer.MatchsSignature(CTRoot.FIELD_SIG))
                 {
-                    var response = CTFieldDeclaration.Parse(tokens, i);
-                    fields.Add((CTFieldDeclaration)response.Node);
-                    i = response.Index;
+                    var response = CTFieldDeclaration.Parse(lexer);
+                    fields.Add((CTFieldDeclaration)response);
                 }
-                else throw new CTLexerException(token, $"Unexpected token '{token.Span}' in struct definition.");
+                else throw new CTLexerException(token, $"Unexpected token '{token.Span}' in struct definition");
             }
-
-            var endBrace = tokens[i++];
-
-            if (endBrace.Type != CTokenType.RIGHT_BRACE)
-                throw new CTLexerException(endBrace, $"Expected '}}', got '{endBrace.Span}' in struct definition.");
-
-            return new CTNodeResponse(new CTStructDefinition(
-                (CTType)identifier.Node,
+            
+            lexer.Consume(CTokenType.RIGHT_BRACE, "Expected '}' to end struct definition");
+            
+            return new CTStructDefinition(
+                identifier,
                 fields.ToArray(),
                 functions.ToArray()
-            ), i);
+            );
         }
     }
 }

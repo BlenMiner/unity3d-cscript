@@ -18,13 +18,11 @@ public class CScript : ScriptableObject
 {
     [SerializeField] string m_CScriptSourceCode;
     [SerializeField] string m_savePath;
-    [SerializeField] string m_dynamicUID;
     [SerializeField] CTLexer m_lexer = new ();
     [SerializeField] Instruction[] m_compiled;
     [SerializeField] List<CScriptFunction> m_functions;
-    [SerializeField] List<CTError> m_errors = new ();
     
-    public List<CTError> Errors => m_errors;
+    public IReadOnlyList<CTError> Errors => m_lexer.Errors;
 
     public Instruction[] Compiled => m_compiled;
 
@@ -60,11 +58,6 @@ public class CScript : ScriptableObject
         
         File.WriteAllText(m_savePath, m_CScriptSourceCode);
     }
-    
-    public void UpdateDynamicUID(string uid)
-    {
-        m_dynamicUID = uid;
-    }
 
     public void Setup(string sourceCode, string savePath = null)
     {
@@ -76,16 +69,8 @@ public class CScript : ScriptableObject
     private void OnCodeUpdated()
     {
         m_compiled = Array.Empty<Instruction>();
-        Errors.Clear();
 
-        if (string.IsNullOrEmpty(m_CScriptSourceCode))
-        {
-            Errors.Add(new CTError
-            {
-                Message = "No source code provided."
-            });
-            return;
-        }
+        if (string.IsNullOrEmpty(m_CScriptSourceCode)) return;
         
         LineCount = m_CScriptSourceCode.Split('\n').Length;
         m_lexer.Parse(m_CScriptSourceCode);
@@ -96,32 +81,15 @@ public class CScript : ScriptableObject
 
     private void ParseRootNode()
     {
-        m_rootNode ??= new CTRoot(ErrorCatcher);
-        m_rootNode.Parse(m_lexer.Tokens);
-    }
-
-    private void ErrorCatcher(CTLexerException exception)
-    {
-        Errors.Add(exception.ToError());
+        m_rootNode ??= new CTRoot();
+        m_rootNode.Parse(m_lexer);
     }
 
     private void Compile()
     {
         var c = new CTCompiler(m_rootNode);
 
-        try
-        {
-            m_compiled = c.Compile();
-        }
-        catch (Exception e)
-        {
-            Errors.Add(new CTError
-            {
-                Message = e.Message
-            });
-            return;
-        }
-
+        m_compiled = c.Compile();
         m_functions ??= new List<CScriptFunction>();
         m_functions.Clear();
         

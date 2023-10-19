@@ -6,20 +6,15 @@ namespace Riten.CScript.Lexer
     {
         public CToken Identifier;
         
-        public CTVariable(CToken identifier) : base(CTNodeType.Variable)
+        public CTVariable(CToken identifier)
         {
             Identifier = identifier;
         }
 
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            if (i >= tokens.Count)
-                throw new CTLexerException(default, "Unexpected end of file, expected a variable.");
-            
-            if (tokens[i].Type != CTokenType.WORD)
-                throw new CTLexerException(tokens[i], $"Expected variable name, got {tokens[i]}");
-            
-            return new CTNodeResponse(new CTVariable(tokens[i]), i + 1);
+            var varName = lexer.Consume(CTokenType.WORD, "Expected variable name.");
+            return new CTVariable(varName);
         }
     }
 }

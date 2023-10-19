@@ -1,24 +1,12 @@
 using System.Collections.Generic;
 using Riten.CScript.Lexer;
 
-public struct CTNodeResponse
-{
-    public readonly CTNode Node;
-    public readonly int Index;
-    
-    public CTNodeResponse(CTNode node, int index)
-    {
-        Node = node;
-        Index = index;
-    }
-}
-
 [System.Serializable]
 public class CTExpression : CTTypedNode
 {
     public readonly CTTypedNode TreeRoot;
 
-    public CTExpression(CTTypedNode tree) : base(CTNodeType.Expression)
+    public CTExpression(CTTypedNode tree)
     {
         TreeRoot = tree;
     }
@@ -37,7 +25,154 @@ public class CTExpression : CTTypedNode
 
         return 0;
     }
-    
+
+    public static CTNode Parse(CTLexer lexer, string hint)
+    {
+        var valueStack = new Stack<CTTypedNode>();
+        var operatorStack = new Stack<CToken>();
+        
+        bool wasOperator = true;
+        int parenthesisCount = 0;
+
+        while (!lexer.IsEndOfFile())
+        {
+            var token = lexer.Peek();
+
+            if (token.Type is CTokenType.SEMICOLON or CTokenType.COMMA)
+                break;
+
+            if (token.Type == CTokenType.RIGHT_PARENTHESES && parenthesisCount <= 0)
+                break;
+
+            switch (token.Type)
+            {
+                case CTokenType.NUMBER:
+                case CTokenType.WORD:
+                    if (wasOperator == false)
+                        throw new CTLexerException(token, $"Missing operator for '{token.Span}' in expression");
+
+                    CTTypedNode nodeV;
+
+                    switch (token.Type)
+                    {
+                        case CTokenType.NUMBER:
+                            nodeV = new CTConstValue(token);
+                            break;
+                        case CTokenType.WORD:
+
+                            if (lexer.MatchsSignature(CTRoot.FUNCTION_CALL_SIG))
+                            {
+                                var response = CTFunctionCallExpression.Parse(lexer);
+                                nodeV = (CTTypedNode)response;
+                            }
+                            else
+                            {
+                                nodeV = new CTVariable(token);
+                            }
+
+                            break;
+                        default:
+                            throw new CTLexerException(token, $"Unexpected token '{token.Span}' in expression");
+                    }
+
+                    valueStack.Push(nodeV);
+                    wasOperator = false;
+                    break;
+
+                case CTokenType.PLUS:
+                case CTokenType.MINUS:
+                case CTokenType.BIT_AND:
+                case CTokenType.BIT_OR:
+                case CTokenType.BIT_NOT:
+                case CTokenType.BIT_XOR:
+                case CTokenType.BIT_SHIFT_LEFT:
+                case CTokenType.BIT_SHIFT_RIGHT:
+                case CTokenType.MULTIPLY:
+                case CTokenType.DIVIDE:
+                case CTokenType.LESS_THAN:
+                case CTokenType.MORE_THAN:
+                case CTokenType.BOOLEAN_AND:
+                case CTokenType.BOOLEAN_OR:
+                case CTokenType.BOOLEAN_NOT:
+                case CTokenType.EQUALS_EQUALS:
+                case CTokenType.LESS_THAN_OR_EQUAL:
+                case CTokenType.MORE_THAN_OR_EQUAL:
+
+                    if (!wasOperator && token.Options == CTOptions.UNARY)
+                        wasOperator = true;
+
+                    if (wasOperator)
+                    {
+                        valueStack.Push(new CTNodeEmpty());
+                        token.Options = CTOptions.UNARY;
+                    }
+
+                    while (operatorStack.Count > 0 && !wasOperator &&
+                           TokenPriority(operatorStack.Peek()) > TokenPriority(token))
+                    {
+                        if (!EmptyStack(operatorStack, valueStack))
+                            return default;
+                    }
+
+                    operatorStack.Push(token);
+                    wasOperator = true;
+                    break;
+                case CTokenType.LEFT_PARENTHESES:
+                    parenthesisCount++;
+                    operatorStack.Push(token);
+                    wasOperator = true;
+                    break;
+
+                case CTokenType.RIGHT_PARENTHESES:
+                    parenthesisCount--;
+                    if (wasOperator)
+                    {
+                        valueStack.Push(new CTNodeEmpty());
+                        token.Options = CTOptions.UNARY;
+                    }
+
+                    while (operatorStack.Count > 0 && operatorStack.Peek().Type != CTokenType.LEFT_PARENTHESES)
+                    {
+                        if (!EmptyStack(operatorStack, valueStack))
+                            return default;
+                    }
+
+                    if (operatorStack.Count > 0)
+                        operatorStack.Pop(); // Remove the '('
+                    else
+                    {
+                        throw new CTLexerException(token, "Missing '(' for the ')'.");
+                    }
+
+                    wasOperator = false;
+                    break;
+                default: throw new CTLexerException(token, $"Unexpected token '{token.Span}' in {hint}.");
+            }
+        }
+        
+        while (operatorStack.Count > 0)
+            if (!EmptyStack(operatorStack, valueStack))
+                return default;
+        
+        switch (valueStack.Count)
+        {
+            case 0: throw new CTLexerException(lexer.Peek(), "Invalid expression");
+            case > 1:
+            {
+                var a = DebugLogNode(valueStack.Pop());
+                var b = DebugLogNode(valueStack.Pop());
+
+                throw new CTLexerException(lexer.Peek(), 
+                    $"Missing operator <color=white>{b}</color> <b><color=cyan>?</color></b> <color=white>{a}</color>");
+            }
+        }
+
+        var tree = valueStack.Pop();
+        var node = new CTExpression(tree);
+        
+        return node;
+    }
+/*
     public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i, string hint)
     {
         var valueStack = new Stack<CTTypedNode>();
@@ -190,7 +325,7 @@ public class CTExpression : CTTypedNode
         // Debug.Log(DebugLogNode(tree));
         
         return new CTNodeResponse(node, i);
-    }
+    }*/
 
     private static bool EmptyStack(Stack<CToken> operatorStack, Stack<CTTypedNode> valueStack)
     {

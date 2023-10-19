@@ -1,37 +1,22 @@
-﻿using System.Collections.Generic;
-
-namespace Riten.CScript.Lexer
+﻿namespace Riten.CScript.Lexer
 {
     public class CTReturnStatement : CTStatement
     {
         public readonly CToken ReturnToken;
         public readonly CTExpression ReturnExpression;
-        
-        public CTReturnStatement(CToken returnToken, CTExpression returnExpression) : base(CTNodeType.ReturnStatement)
+
+        private CTReturnStatement(CToken returnToken, CTExpression returnExpression)
         {
             ReturnToken = returnToken;
             ReturnExpression = returnExpression;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            var returnToken = tokens[i++];
+            var returnToken = lexer.Consume(CTokenType.RETURN, "Expected 'return' keyword");
+            var expression = CTExpression.Parse(lexer, "return expression");
             
-            if (returnToken.Type != CTokenType.RETURN)
-                throw new CTLexerException(returnToken, $"Expected 'return', got '{returnToken.Span}'.");
-            
-            if (i >= tokens.Count)
-                throw new CTLexerException(returnToken, "Expected expression or semicolon after return keyword, got end of file.");
-            
-            if (tokens[i].Type == CTokenType.SEMICOLON)
-                return new CTNodeResponse(new CTReturnStatement(returnToken, null), i + 1);
-            
-            var expression = CTExpression.Parse(tokens, i, "return statement");
-            
-            return new CTNodeResponse(new CTReturnStatement(
-                returnToken,
-                (CTExpression)expression.Node
-            ), expression.Index);
+            return new CTReturnStatement(returnToken, expression as CTExpression);
         }
     }
 }

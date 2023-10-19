@@ -6,7 +6,7 @@ public class CTArgumentDeclaration : CTNode
     public readonly CToken ArgumentType;
     public readonly CToken ArgumentName;
     
-    public CTArgumentDeclaration(CToken type, CToken name) : base(CTNodeType.ArgumentDeclaration)
+    public CTArgumentDeclaration(CToken type, CToken name)
     {
         ArgumentType = type;
         ArgumentName = name;
@@ -18,16 +18,15 @@ public class CTArgumentsDeclaration : CTStatement
     public readonly CToken StartParenthesis;
     public readonly IList<CTArgumentDeclaration> Values;
     public readonly CToken EndParenthesis;
-    
-    public CTArgumentsDeclaration(CToken startParenthesis, IList<CTArgumentDeclaration> args, CToken endParenthesis) 
-        : base(CTNodeType.ArgumentsDeclaration)
+
+    private CTArgumentsDeclaration(CToken startParenthesis, IList<CTArgumentDeclaration> args, CToken endParenthesis)
     {
         StartParenthesis = startParenthesis;
         Values = args;
         EndParenthesis = endParenthesis;
     }
     
-    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+    public static CTNode Parse(CTLexer lexer)
     {
         var arguments = new List<CTArgumentDeclaration>();
         
@@ -35,32 +34,29 @@ public class CTArgumentsDeclaration : CTStatement
         bool expectingComma = false;
         CToken type = default;
         
-        var startParenthesis = tokens[i++];
+        var startParenthesis = lexer.Consume(CTokenType.LEFT_PARENTHESES, "Expected left parenthesis for argument declaration.");
         
-        if (startParenthesis.Type != CTokenType.LEFT_PARENTHESES)
-            throw new CTLexerException(tokens[i], $"Expected left parenthesis, got '{startParenthesis.Span}'.");
-        
-        while (i < tokens.Count)
+        while (true)
         {
-            var token = tokens[i];
+            var token = lexer.Peek();
 
             if (token.Type == CTokenType.RIGHT_PARENTHESES)
             {
-                var last = tokens[i - 1];
+                var last = lexer.PeekPrevious();
                 
                 if (last.Type == CTokenType.COMMA)
                 {
                     throw new CTLexerException(last,
-                        $"Unexpected token '{last.Span}' in argument declaration.",
-                        "Commans should be placed between arguments only."
+                        $"Unexpected token '{last.Span}' in argument declaration",
+                        "Commans should be placed between arguments only"
                     );
                 }
                 
                 if (expectingIdentifier)
                 {
                     throw  new CTLexerException(token,
-                        $"Unexpected token '{token.Span}' in argument declaration.",
-                        "Expected identifier."
+                        $"Unexpected token '{token.Span}' in argument declaration",
+                        "Expected identifier"
                     );
                 }
                 break;
@@ -73,16 +69,16 @@ public class CTArgumentsDeclaration : CTStatement
                     if (expectingIdentifier)
                     {
                         throw new CTLexerException(token,
-                            $"Unexpected token '{token.Span}' in argument declaration.",
-                            "Expected identifier."
+                            $"Unexpected token '{token.Span}' in argument declaration",
+                            "Expected identifier"
                         );
                     }
                     
                     if (!expectingComma)
                     {
                         throw new CTLexerException(token,
-                            $"Badly placed comma '{token.Span}' in argument declaration.",
-                            "Commans should be placed between arguments only."
+                            $"Badly placed comma '{token.Span}' in argument declaration",
+                            "Commans should be placed between arguments only"
                         );    
                     }
 
@@ -94,8 +90,8 @@ public class CTArgumentsDeclaration : CTStatement
                     if (expectingComma)
                     {
                         throw new CTLexerException(token,
-                            $"Unexpected token '{token.Span}' in argument declaration.",
-                            "You need to separate arguments with a comma."
+                            $"Unexpected token '{token.Span}' in argument declaration",
+                            "You need to separate arguments with a comma"
                         );
                     }
                     
@@ -113,21 +109,18 @@ public class CTArgumentsDeclaration : CTStatement
                     break;
                 }
                 default:
-                    throw new CTLexerException(token, $"Invalid token '{token.Span}' in argument declaration.");
+                    throw new CTLexerException(token, $"Invalid token '{token.Span}' in argument declaration");
             }
-            
-            i++;
+
+            lexer.Consume();
         }
         
         if (expectingIdentifier)
-            throw new CTLexerException(default, "Missing argument identifier.");
+            throw new CTLexerException(new CSpan(), "Missing argument identifier.");
         
-        if (i >= tokens.Count)
-            throw new CTLexerException(default, "Expected right parenthesis, got end of file.");
+        var endParentheis = lexer.Consume(CTokenType.RIGHT_PARENTHESES, "Expected right parenthesis for argument declaration");
         
-        var endParentheis = tokens[i++];
-        
-        return new CTNodeResponse(new CTArgumentsDeclaration(startParenthesis, arguments, endParentheis), i);
+        return new CTArgumentsDeclaration(startParenthesis, arguments, endParentheis);
     }
 }
 
@@ -138,8 +131,7 @@ public class CTFunction : CTTypedNode
     public readonly CTArgumentsDeclaration Arguments;
     public readonly CTBlockStatement BlockStatement;
 
-    public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement) : base(CTNodeType
-        .FunctionDeclaration)
+    public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement)
     {
         FunctionType = type;
         FunctionName = name;
@@ -148,39 +140,19 @@ public class CTFunction : CTTypedNode
         TypeName = FunctionType.Span.Content;
     }
 
-    public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+    public static CTNode Parse(CTLexer lexer)
     {
-        var functionType = tokens[i++];
+        var functionType = lexer.Consume(CTokenType.WORD, "Expected function type for function declaration");
+        var functionName = lexer.Consume(CTokenType.WORD, "Expected function name for function declaration");
         
-        if (functionType.Type != CTokenType.WORD)
-            throw new CTLexerException(functionType, $"Expected function type, got '{functionType.Span}'.");
-
-        if (i >= tokens.Count)
-            throw new CTLexerException(functionType, "Expected function name, got end of file.");
-                
-        var functionName = tokens[i++];
+        var arguments = CTArgumentsDeclaration.Parse(lexer);
+        var block = CTBlockStatement.Parse(lexer);
         
-        if (functionName.Type != CTokenType.WORD)
-            throw new CTLexerException(functionName, $"Expected function name, got '{functionName.Span}'.");
-
-        if (i >= tokens.Count)
-            throw new CTLexerException(functionName, "Expected function body, got end of file.");
-
-        var arguments = CTArgumentsDeclaration.Parse(tokens, i);
-
-        i = arguments.Index;
-        
-        if (i >= tokens.Count)
-            throw new CTLexerException(functionName, "Expected function body, got end of file.");
-        
-        var block = CTBlockStatement.Parse(tokens, i);
-        
-        return new CTNodeResponse(new CTFunction(
+        return new CTFunction(
             functionType, 
             functionName, 
-            (CTArgumentsDeclaration)arguments.Node, 
-            (CTBlockStatement)block.Node),
-            block.Index
+            (CTArgumentsDeclaration)arguments, 
+            (CTBlockStatement)block
         );
     }
 }

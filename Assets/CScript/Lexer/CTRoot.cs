@@ -7,13 +7,6 @@ public class CTRoot : CTNode
     readonly List<CTNode> m_children = new ();
     
     public IReadOnlyList<CTNode> Children => m_children;
-
-    private readonly Action<CTLexerException> Error;
-
-    public CTRoot(Action<CTLexerException> Error) : base(CTNodeType.Root)
-    {
-        this.Error = Error;
-    }
     
     public static readonly CTokenType[] FUNCTION_SIG =
     {
@@ -34,84 +27,46 @@ public class CTRoot : CTNode
         CTokenType.WORD
     };
 
-    public void Parse(IReadOnlyList<CToken> tokens)
+    public void Parse(CTLexer lexer)
     {
         m_children.Clear();
         
-        int index = 0;
-
-        while (index < tokens.Count)
+        while (!lexer.IsEndOfFile())
         {
-            switch (tokens[index].Type)
+            switch (lexer.Peek().Type)
             {
                 case CTokenType.SEMICOLON:
-                    index++;
+                    lexer.Consume();
                     continue;
                 case CTokenType.STRUCT:
-                    Add(tokens, CTStructDefinition.Parse, ref index);
+                    Add(lexer, CTStructDefinition.Parse);
                     break;
                 default:
                 {
-                    if (MatchSignature(tokens, index, FUNCTION_SIG))
+                    if (lexer.MatchsSignature(FUNCTION_SIG))
                     {
-                        Add(tokens, CTFunction.Parse, ref index);
+                        Add(lexer, CTFunction.Parse);
+                        break;
                     }
-                    else
-                    {
-                
-                        Error(new CTLexerException(tokens[index], $"Unexpected token '{tokens[index].Span}' in root scope."));
-                        index = SkipUntilRightBrace(tokens, index);
-                    }
-
+                    
+                    lexer.RegisterError(new CTError(lexer.Peek(), "Unexpected token in root scope"));
+                    lexer.SkipUntilRightBrace();
                     break;
                 }
             }
         }
     }
 
-    private void Add(IReadOnlyList<CToken> tokens, Func<IReadOnlyList<CToken>, int, CTNodeResponse> parser, ref int index)
+    private void Add(CTLexer lexer, Func<CTLexer, CTNode> parser)
     {
         try
         {
-            var response = parser(tokens, index);
-            m_children.Add(response.Node);
-            index = response.Index;
+            m_children.Add(parser(lexer));
         }
         catch (CTLexerException ex)
         {
-            Error(ex);
-            index = SkipUntilRightBrace(tokens, index);
+            lexer.RegisterError(ex.Error);
+            lexer.SkipUntilRightBrace();
         }
-    }
-    
-    public static bool MatchSignature(IReadOnlyList<CToken> tokens, int index, IReadOnlyList<CTokenType> types)
-    {
-        if (index >= tokens.Count)
-            return false;
-
-        if (tokens.Count - index < types.Count)
-            return false;
-
-        for (var i = 0; i < types.Count; i++)
-        {
-            var type = types[i];
-            
-            if (type == CTokenType.NULL) continue;
-            
-            if (tokens[index + i].Type != type)
-                return false;
-        }
-
-        return true;
-    }
-
-    private static int SkipUntilRightBrace(IReadOnlyList<CToken> tokens, int index)
-    {
-        while (index < tokens.Count && tokens[index].Type != CTokenType.RIGHT_BRACE)
-            index++;
-
-        index++;
-
-        return index;
     }
 }

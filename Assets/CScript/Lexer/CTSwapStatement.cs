@@ -1,38 +1,25 @@
-﻿using System.Collections.Generic;
-
-namespace Riten.CScript.Lexer
+﻿namespace Riten.CScript.Lexer
 {
     public class CTSwapStatement : CTStatement
     {
         public readonly CTVariable Left;
         public readonly CTVariable Right;
 
-        public CTSwapStatement(CTVariable left, CTVariable right) : base(CTNodeType.SWAPStatement)
+        public CTSwapStatement(CTVariable left, CTVariable right)
         {
             Left = left;
             Right = right;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            if (tokens[i].Type != CTokenType.WORD)
-                throw new CTLexerException(tokens[i], $"Expected variable name, got {tokens[i]}");
+            var left = lexer.Consume(CTokenType.WORD, "Expected variable name");
             
-            var left = new CTVariable(tokens[i]);
+            lexer.Consume(CTokenType.SWAP, "Expected <=> statement");
             
-            i++;
+            var right = lexer.Consume(CTokenType.WORD, "Expected variable name");
             
-            if (tokens[i].Type != CTokenType.SWAP)
-                throw new CTLexerException(tokens[i], $"Expected 'swap', got {tokens[i]}");
-            
-            i++;
-            
-            if (tokens[i].Type != CTokenType.WORD)
-                throw new CTLexerException(tokens[i], $"Expected variable name, got {tokens[i]}");
-            
-            var right = new CTVariable(tokens[i]);
-            
-            return new CTNodeResponse(new CTSwapStatement(left, right), i + 1);
+            return new CTSwapStatement(new CTVariable(left), new CTVariable(right));
         }
     }
 }

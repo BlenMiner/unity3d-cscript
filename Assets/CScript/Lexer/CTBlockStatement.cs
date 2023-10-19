@@ -7,7 +7,7 @@ namespace Riten.CScript.Lexer
     {
         public readonly CTStatement[] Statements;
 
-        public CTBlockStatement(CTStatement[] statements) : base(CTNodeType.Block)
+        public CTBlockStatement(CTStatement[] statements)
         {
             Statements = statements;
         }
@@ -32,89 +32,80 @@ namespace Riten.CScript.Lexer
             CTokenType.WORD
         };
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
             var statements = new List<CTStatement>();
             
-            if (tokens[i].Type != CTokenType.LEFT_BRACE)
-                throw new CTLexerException(tokens[i], $"Expected '{{', got '{tokens[i].Span}'. In Block statement.");
-
-            ++i;
+            lexer.Consume(CTokenType.LEFT_BRACE, "Expected '{' at the start of a block statement");
             
-            while (i < tokens.Count)
+            while (true)
             {
-                var token = tokens[i];
+                var token = lexer.Peek();
 
                 if (token.Type == CTokenType.RIGHT_BRACE)
                 {
-                    ++i;
+                    lexer.Consume();
                     break;
                 }
 
                 if (token.Type == CTokenType.SEMICOLON)
                 {
-                    ++i;
+                    lexer.Consume();
                     continue;
                 }
 
-                int start = i;
+                int start = lexer.ParsingIndex;
 
-                i = ParseNode(tokens, i, token, statements);
+                ParseNode(lexer, token, statements);
 
-                if (start == i)
+                if (start == lexer.ParsingIndex)
                 {
                     Debug.LogError($"Infinite loop detected at token {token.Span}.");
                     break;
                 }
             }
-
-            return new CTNodeResponse(new CTBlockStatement(statements.ToArray()), i);
+            
+            return new CTBlockStatement(statements.ToArray());
         }
-
-        private static int ParseNode(IReadOnlyList<CToken> tokens, int i, CToken token, ICollection<CTStatement> statements)
+        
+        private static void ParseNode(CTLexer lexer, CToken token, ICollection<CTStatement> statements)
         {
             switch (token.Type)
             {
                 case CTokenType.RETURN:
                 {
-                    var statement = CTReturnStatement.Parse(tokens, i);
-                    statements.Add(statement.Node as CTStatement);
-                    i = statement.Index;
+                    var statement = CTReturnStatement.Parse(lexer);
+                    statements.Add(statement as CTStatement);
                     break;
                 }
                 case CTokenType.IF:
                 {
-                    var statement = CTIfStatement.Parse(tokens, i);
-                    statements.Add(statement.Node as CTStatement);
-                    i = statement.Index;
+                    var statement = CTIfStatement.Parse(lexer);
+                    statements.Add(statement as CTStatement);
                     break;
                 }
                 case CTokenType.REPEAT:
                 {
-                    var statement = CTRepeatBlockStatement.Parse(tokens, i);
-                    statements.Add(statement.Node as CTStatement);
-                    i = statement.Index;
+                    var statement = CTRepeatBlockStatement.Parse(lexer);
+                    statements.Add(statement as CTStatement);
                     break;
                 }
                 default:
                 {
-                    if (CTRoot.MatchSignature(tokens, i, DECLARE_STATEMENT_SIG))
+                    if (lexer.MatchsSignature(DECLARE_STATEMENT_SIG))
                     {
-                        var statement = CTDeclareStatement.Parse(tokens, i);
-                        statements.Add(statement.Node as CTStatement);
-                        i = statement.Index;
+                        var statement = CTDeclareStatement.Parse(lexer);
+                        statements.Add(statement as CTStatement);
                     }
-                    else if (CTRoot.MatchSignature(tokens, i, ASSIGN_STATEMENT_SIG))
+                    else if (lexer.MatchsSignature(ASSIGN_STATEMENT_SIG))
                     {
-                        var statement = CTAssignStatement.Parse(tokens, i);
-                        statements.Add(statement.Node as CTStatement);
-                        i = statement.Index;
+                        var statement = CTAssignStatement.Parse(lexer);
+                        statements.Add(statement as CTStatement);
                     }
-                    else if (CTRoot.MatchSignature(tokens, i, SWAP_STATEMENT_SIG))
+                    else if (lexer.MatchsSignature(SWAP_STATEMENT_SIG))
                     {
-                        var statement = CTSwapStatement.Parse(tokens, i);
-                        statements.Add(statement.Node as CTStatement);
-                        i = statement.Index;
+                        var statement = CTSwapStatement.Parse(lexer);
+                        statements.Add(statement as CTStatement);
                     }
                     else
                     {
@@ -124,8 +115,6 @@ namespace Riten.CScript.Lexer
                     break;
                 }
             }
-
-            return i;
         }
     }
 }

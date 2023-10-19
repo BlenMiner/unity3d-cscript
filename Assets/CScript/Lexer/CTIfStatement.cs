@@ -6,8 +6,8 @@ namespace Riten.CScript.Lexer
     {
         public struct IfBranch
         {
-            public CTExpression Condition;
-            public CTBlockStatement BlockStatement;
+            public readonly CTExpression Condition;
+            public readonly CTBlockStatement BlockStatement;
             
             public IfBranch(CTExpression condition, CTBlockStatement blockStatement)
             {
@@ -16,53 +16,50 @@ namespace Riten.CScript.Lexer
             }
         }
         
-        public IfBranch[] Branches;
-        public CTBlockStatement ElseBlockStatement;
+        public readonly IfBranch[] Branches;
+        public readonly CTBlockStatement ElseBlockStatement;
 
-        public CTIfStatement(IfBranch[] branches, CTBlockStatement elseBlock) : base(CTNodeType.IfStatement)
+        private CTIfStatement(IfBranch[] branches, CTBlockStatement elseBlock)
         {
             Branches = branches;
             ElseBlockStatement = elseBlock;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            i = ConsumeToken(CTokenType.IF, tokens, i, "Expected if statement.");
+            lexer.Consume(CTokenType.IF, "Expected if statement");
             
             var branches = new List<IfBranch>();
             CTBlockStatement elseBlock = null;
             
             while (true)
             {
-                i = ConsumeToken(CTokenType.LEFT_PARENTHESES, tokens, i, "Expected '(' after the 'if' keyword.");
+                lexer.Consume(CTokenType.LEFT_PARENTHESES, "Expected '(' after the 'if' keyword");
                 
-                var condition = CTExpression.Parse(tokens, i, "if condition");
-                i = condition.Index;
+                var condition = CTExpression.Parse(lexer, "if condition");
+                
+                lexer.Consume(CTokenType.RIGHT_PARENTHESES, "Expected ')' to close the condition");
+                
+                var block = CTBlockStatement.Parse(lexer);
 
-                i = ConsumeToken(CTokenType.RIGHT_PARENTHESES, tokens, i, "Close the boolean expression with ')'.");
+                branches.Add(new IfBranch(condition as CTExpression, block as CTBlockStatement));
                 
-                var block = CTBlockStatement.Parse(tokens, i);
-                i = block.Index;
-
-                branches.Add(new IfBranch(condition.Node as CTExpression, block.Node as CTBlockStatement));
-                
-                if (tokens[i].Type != CTokenType.ELSE)
+                if (lexer.Peek().Type != CTokenType.ELSE)
                     break;
+
+                lexer.Consume();
                 
-                ++i;
-                
-                if (tokens[i].Type != CTokenType.IF)
+                if (lexer.Peek().Type != CTokenType.IF)
                 {
-                    var elseBlockNode = CTBlockStatement.Parse(tokens, i);
-                    elseBlock = elseBlockNode.Node as CTBlockStatement;
-                    i = elseBlockNode.Index;
+                    var elseBlockNode = CTBlockStatement.Parse(lexer);
+                    elseBlock = elseBlockNode as CTBlockStatement;
                     break;
                 }
                 
-                ++i;
+                lexer.Consume();
             }
 
-            return new CTNodeResponse(new CTIfStatement(branches.ToArray(), elseBlock), i);
+            return new CTIfStatement(branches.ToArray(), elseBlock);
         }
     }
 }

@@ -1,16 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace Riten.CScript.Lexer
+﻿namespace Riten.CScript.Lexer
 {
     public class CTDeclareStatement : CTStatement
     {
-        public readonly CTType Type;
+        public readonly CToken Type;
         public readonly CToken Identifier;
         public readonly CToken EqualSign;
         public readonly CTExpression Expression;
-        
-        public CTDeclareStatement(CTType type, CToken identifier, CToken equal, CTExpression expr) 
-            : base(CTNodeType.DeclareStatement)
+
+        private CTDeclareStatement(CToken type, CToken identifier, CToken equal, CTExpression expr)
         {
             Type = type;
             Identifier = identifier;
@@ -18,36 +15,20 @@ namespace Riten.CScript.Lexer
             Expression = expr;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            var type = CTType.Parse(tokens, i);
+            var type = lexer.Consume(CTokenType.WORD, "Expected type for declaration");
+            var identifier = lexer.Consume(CTokenType.WORD, "Expected identifier for declaration");
+            var equalSign = lexer.Consume(CTokenType.EQUALS, "Expected '=' in declaration");
             
-            i = type.Index;
+            var expression = CTExpression.Parse(lexer, "declare expression");
             
-            var identifier = tokens[i++];
-            
-            if (identifier.Type != CTokenType.WORD)
-                throw new CTLexerException(identifier, $"Expected identifier, got '{identifier.Span}'.");
-            
-            if (i >= tokens.Count) 
-                throw new CTLexerException(identifier, "Expected '=', got end of file.");
-            
-            var equalSign = tokens[i++];
-            
-            if (equalSign.Type != CTokenType.EQUALS)
-                throw new CTLexerException(equalSign, $"Expected '=', got '{equalSign.Span}'.");
-            
-            if (i >= tokens.Count)
-                throw new CTLexerException(equalSign, "Expected expression, got end of file.");
-            
-            var expression = CTExpression.Parse(tokens, i, "declare expression");
-            
-            return new CTNodeResponse(new CTDeclareStatement(
-                (CTType)type.Node,
+            return new CTDeclareStatement(
+                type,
                 identifier,
                 equalSign,
-                (CTExpression)expression.Node
-            ), expression.Index);
+                (CTExpression)expression
+            );
         }
     }
 }

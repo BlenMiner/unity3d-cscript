@@ -7,14 +7,14 @@ namespace Riten.CScript.Lexer
         public readonly CToken Token;
         public readonly string ValueString;
 
-        public CTConstValue(CToken token) : base(CTNodeType.Value)
+        public CTConstValue(CToken token)
         {
             ValueString = token.Span.Content;
             TypeName = GetTypeFromConstant(ref ValueString);
             Token = token;
         }
 
-        string GetTypeFromConstant(ref string constant)
+        static string GetTypeFromConstant(ref string constant)
         {
             for (int i = 0; i < InternalTypeUtils.INTERNAL_TYPES.Length; ++i)
             {
@@ -29,12 +29,7 @@ namespace Riten.CScript.Lexer
         }
     }
 
-    public class CTNodeEmpty : CTTypedNode
-    {
-        public CTNodeEmpty() : base(CTNodeType.NULL)
-        {
-        }
-    }
+    public class CTNodeEmpty : CTTypedNode {}
 
     public class CTOperator : CTTypedNode
     {
@@ -42,20 +37,11 @@ namespace Riten.CScript.Lexer
         public readonly CTTypedNode Left;
         public readonly CTTypedNode Right;
 
-        public CTOperator(CToken op, CTTypedNode left, CTTypedNode right) : base(CTNodeType.Operator)
+        public CTOperator(CToken op, CTTypedNode left, CTTypedNode right)
         {
             Operator = op;
             Left = left;
             Right = right;
-        }
-    }
-
-    public class CTTypedNode : CTNode
-    {
-        public string TypeName;
-
-        protected CTTypedNode(CTNodeType type) : base(type)
-        {
         }
     }
 }

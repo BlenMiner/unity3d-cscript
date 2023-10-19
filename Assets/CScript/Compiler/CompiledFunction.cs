@@ -41,7 +41,7 @@ namespace Riten.CScript.Compiler
                 case CTDeclareStatement declare:
                     scope.RegisterNewVariable(
                         declare.Identifier.Span.Content, 
-                        declare.Type.TypeToken.Span.Content, 
+                        declare.Type.Span.Content, 
                         1,
                         level
                     );

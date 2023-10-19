@@ -6,25 +6,23 @@ namespace Riten.CScript.Lexer
     {
         public readonly CToken Identifier;
         public readonly CTFunctionCallArgs Arguments;
-        
-        public CTFunctionCallExpression(CToken identifier, CTFunctionCallArgs arguments) : base(CTNodeType.FunctionCall)
+
+        private CTFunctionCallExpression(CToken identifier, CTFunctionCallArgs arguments)
         {
             Identifier = identifier;
             Arguments = arguments;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
-            i = ConsumeToken(CTokenType.WORD, out var identifier, tokens, i, "Expected function name.");
-            i = ConsumeToken(CTokenType.LEFT_PARENTHESES, tokens, i, "Expected function open parenthesis.");
+            var identifier = lexer.Consume(CTokenType.WORD, "Expected function name");
+            lexer.Consume(CTokenType.LEFT_PARENTHESES, "Expected '(' after function name");
             
-            var args = CTFunctionCallArgs.Parse(tokens, i);
-            i = args.Index;
+            var args = CTFunctionCallArgs.Parse(lexer);
             
-            i = ConsumeToken(CTokenType.RIGHT_PARENTHESES, tokens, i, "Expected function closing parenthesis.");
-            i--;
+            lexer.Consume(CTokenType.RIGHT_PARENTHESES, "Expected closing parenthesis after function call");
             
-            return new CTNodeResponse(new CTFunctionCallExpression(identifier, (CTFunctionCallArgs)args.Node), i);
+            return new CTFunctionCallExpression(identifier, (CTFunctionCallArgs)args);
         }
     }
     
@@ -32,20 +30,20 @@ namespace Riten.CScript.Lexer
     {
         public readonly CTExpression[] Values;
 
-        public CTFunctionCallArgs(CTExpression[] Args) : base(CTNodeType.FunctionArgs)
+        public CTFunctionCallArgs(CTExpression[] Args)
         {
-            this.Values = Args;
+            Values = Args;
         }
         
-        public static CTNodeResponse Parse(IReadOnlyList<CToken> tokens, int i)
+        public static CTNode Parse(CTLexer lexer)
         {
             var args = new List<CTExpression>();
             
             bool expectingComma = false;
 
-            while (i < tokens.Count)
+            while (true)
             {
-                var token = tokens[i];
+                var token = lexer.Peek();
                 bool cancel = false;
 
                 switch (token.Type)
@@ -59,16 +57,15 @@ namespace Riten.CScript.Lexer
                             throw new CTLexerException(token, $"Unexpected comma at {token.Span.Start}.");
                         
                         expectingComma = false;
-                        ++i;
+                        lexer.Consume();
                         continue;
 
                     default:
                         if (expectingComma)
                             throw new CTLexerException(token, $"Expected comma between arguments, got {token.Type} at {token.Span.Start}.");
                         
-                        var node = CTExpression.Parse(tokens, i, "function call argument");
-                        args.Add((CTExpression)node.Node);
-                        i = node.Index;
+                        var node = CTExpression.Parse(lexer, "function call argument");
+                        args.Add((CTExpression)node);
                         expectingComma = true;
                         break;
                 }
@@ -76,7 +73,7 @@ namespace Riten.CScript.Lexer
                 if (cancel) break;
             }
 
-            return new CTNodeResponse(new CTFunctionCallArgs(args.ToArray()), i);
+            return new CTFunctionCallArgs(args.ToArray());
         }
     }
 }

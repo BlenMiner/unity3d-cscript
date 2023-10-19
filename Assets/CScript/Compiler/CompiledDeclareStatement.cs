@@ -12,14 +12,14 @@ namespace Riten.CScript.Compiler
         {
             Scope = scope;
             
-            statement.Expression.SetTypeHint(statement.Type.TypeToken.Span.Content);
+            statement.Expression.SetTypeHint(statement.Type.Span.Content);
             
             Expression = (CompiledExpression)compiler.CompileNode(scope, statement.Expression, level);
 
-            if (Expression.ExpressionNode.TypeName != statement.Type.TypeToken.Span.Content)
+            if (Expression.ExpressionNode.TypeName != statement.Type.Span.Content)
             {
-                throw new CTLexerException(statement.Type.TypeToken, 
-                    $"Assigning value of type {Expression.ExpressionNode.TypeName} but declared as {statement.Type.TypeToken.Span.Content}.");
+                throw new CTLexerException(statement.Type, 
+                    $"Assigning value of type {Expression.ExpressionNode.TypeName} but declared as {statement.Type.Span.Content}.");
             }
 
             var variableIdentifier = statement.Identifier.Span.Content;
