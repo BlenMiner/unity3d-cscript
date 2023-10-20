@@ -1,0 +1,17 @@
+{
+    "name": "CScript.TypeChecking",
+    "rootNamespace": "",
+    "references": [
+        "GUID:4284c1882dd12804c9d07988840683f7",
+        "GUID:4726b91a66a9060438ad9e1403f8d2cd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
