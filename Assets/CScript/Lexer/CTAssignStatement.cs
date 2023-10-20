@@ -11,6 +11,8 @@
             Identifier = identifier;
             EqualSign = equal;
             Expression = expr;
+            
+            AddChild(expr);
         }
         
         public static CTNode Parse(CTLexer lexer)

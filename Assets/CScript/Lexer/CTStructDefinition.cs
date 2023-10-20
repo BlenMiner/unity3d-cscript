@@ -43,7 +43,7 @@ namespace Riten.CScript.Lexer
         }
     }
     
-    public class CTStructDefinition : CTNode
+    public class CTStructDefinition : CTDefinition
     {
         public CToken Identifier;
         public CTFieldDeclaration[] Fields;

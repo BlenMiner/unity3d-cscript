@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using Riten.CScript.Lexer;
 
 public class CTRoot : CTNode
 {
-    readonly List<CTNode> m_children = new ();
-    
-    public IReadOnlyList<CTNode> Children => m_children;
-    
     public static readonly CTokenType[] FUNCTION_SIG =
     {
         CTokenType.WORD,
@@ -29,7 +24,7 @@ public class CTRoot : CTNode
 
     public void Parse(CTLexer lexer)
     {
-        m_children.Clear();
+        Children.Clear();
         
         while (!lexer.IsEndOfFile())
         {
@@ -61,7 +56,7 @@ public class CTRoot : CTNode
     {
         try
         {
-            m_children.Add(parser(lexer));
+            AddChild(parser(lexer));
         }
         catch (CTLexerException ex)
         {

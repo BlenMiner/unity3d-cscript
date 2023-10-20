@@ -5,6 +5,7 @@ using System.Text;
 using Riten.CScript.Compiler;
 using UnityEngine;
 using Riten.CScript.Native;
+using Riten.CScript.TypeChecker;
 
 [Serializable]
 public struct CScriptFunction
@@ -19,6 +20,7 @@ public class CScript : ScriptableObject
     [SerializeField] string m_CScriptSourceCode;
     [SerializeField] string m_savePath;
     [SerializeField] CTLexer m_lexer = new ();
+    [SerializeField] TypeResolver m_typeResolver;
     [SerializeField] Instruction[] m_compiled;
     [SerializeField] List<CScriptFunction> m_functions;
     
@@ -87,7 +89,9 @@ public class CScript : ScriptableObject
 
     private void Compile()
     {
-        var c = new CTCompiler(m_rootNode);
+        m_typeResolver = new TypeResolver(m_rootNode);
+        
+        var c = new CTCompiler(m_rootNode, m_typeResolver);
 
         m_compiled = c.Compile();
         m_functions ??= new List<CScriptFunction>();

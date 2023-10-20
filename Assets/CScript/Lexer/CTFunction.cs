@@ -124,20 +124,21 @@ public class CTArgumentsDeclaration : CTStatement
     }
 }
 
-public class CTFunction : CTTypedNode
+public class CTFunction : CTDefinition
 {
-    public CToken FunctionType;
+    public CToken ReturnType;
     public CToken FunctionName;
     public readonly CTArgumentsDeclaration Arguments;
     public readonly CTBlockStatement BlockStatement;
 
     public CTFunction(CToken type, CToken name, CTArgumentsDeclaration args, CTBlockStatement blockStatement)
     {
-        FunctionType = type;
+        ReturnType = type;
         FunctionName = name;
         Arguments = args;
         BlockStatement = blockStatement;
-        TypeName = FunctionType.Span.Content;
+        
+        AddChild(blockStatement);
     }
 
     public static CTNode Parse(CTLexer lexer)

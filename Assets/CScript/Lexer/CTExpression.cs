@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Riten.CScript.Lexer;
-using UnityEngine;
 
 [System.Serializable]
 public class CTExpression : CTTypedNode
@@ -10,6 +9,7 @@ public class CTExpression : CTTypedNode
     public CTExpression(CTTypedNode tree)
     {
         TreeRoot = tree;
+        AddChild(tree);
     }
     
     public static int TokenPriority(CToken token)

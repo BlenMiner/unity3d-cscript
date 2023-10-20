@@ -116,7 +116,7 @@ namespace Riten.CScript.Compiler
                     break;
                 
                 case CTFunctionCallExpression fnCall:
-                    fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.FunctionType.Span.Content;
+                    fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.ReturnType.Span.Content;
                     break;
 
                 case CTConstValue:

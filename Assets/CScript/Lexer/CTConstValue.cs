@@ -42,6 +42,9 @@ namespace Riten.CScript.Lexer
             Operator = op;
             Left = left;
             Right = right;
+            
+            AddChild(left);
+            AddChild(right);
         }
     }
 }

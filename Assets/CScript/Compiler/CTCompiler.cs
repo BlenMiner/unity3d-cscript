@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Riten.CScript.Lexer;
 using Riten.CScript.Native;
+using Riten.CScript.TypeChecker;
 
 namespace Riten.CScript.Compiler
 {
@@ -129,12 +130,16 @@ namespace Riten.CScript.Compiler
         public readonly Scope GlobalScope;
         
         private readonly CTRoot m_root;
-        
-        public readonly Dictionary<int, TempFunctionCall> TemporaryFunctionCalls = new ();
 
-        public CTCompiler(CTRoot root)
+        public readonly Dictionary<int, TempFunctionCall> TemporaryFunctionCalls = new ();
+        
+        public TypeResolver TypeResolver { get; }
+
+        public CTCompiler(CTRoot root, TypeResolver typeResolver)
         {
             m_root = root;
+            TypeResolver = typeResolver;
+            
             GlobalScope = new Scope(this, root, null, false);
         }
         

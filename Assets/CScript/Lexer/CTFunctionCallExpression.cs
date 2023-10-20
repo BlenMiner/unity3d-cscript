@@ -11,6 +11,8 @@ namespace Riten.CScript.Lexer
         {
             Identifier = identifier;
             Arguments = arguments;
+            
+            AddChild(arguments);
         }
         
         public static CTNode Parse(CTLexer lexer)

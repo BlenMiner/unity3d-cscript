@@ -10,6 +10,12 @@ namespace Riten.CScript.Lexer
         public CTBlockStatement(CTStatement[] statements)
         {
             Statements = statements;
+
+            for (var i = 0; i < statements.Length; i++)
+            {
+                var statement = statements[i];
+                AddChild(statement);
+            }
         }
         
         public static readonly CTokenType[] DECLARE_STATEMENT_SIG =

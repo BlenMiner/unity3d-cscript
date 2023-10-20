@@ -9,6 +9,9 @@
         {
             ReturnToken = returnToken;
             ReturnExpression = returnExpression;
+            
+            if (returnExpression != null)
+                AddChild(returnExpression);
         }
         
         public static CTNode Parse(CTLexer lexer)

@@ -9,6 +9,9 @@
         {
             Left = left;
             Right = right;
+            
+            AddChild(left);
+            AddChild(right);
         }
         
         public static CTNode Parse(CTLexer lexer)

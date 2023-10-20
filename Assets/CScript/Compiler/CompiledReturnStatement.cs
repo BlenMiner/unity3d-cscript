@@ -15,20 +15,21 @@ namespace Riten.CScript.Compiler
             if (scope.ScopeCreator is not CTFunction function)
                 throw new CTLexerException(node.ReturnToken, "Return statement isn't inside a function.");
             
-            node.ReturnExpression.SetTypeHint(function.TypeName);
+            string functionReturnType = function.ReturnType.Span.Content;
+            node.ReturnExpression.SetTypeHint(functionReturnType);
             
             if (node.ReturnExpression != null)
                 Expression = (CompiledExpression)compiler.CompileNode(scope, node.ReturnExpression, level);
 
             if (node.ReturnExpression == null)
             {
-                if (function.TypeName != null)
+                if (functionReturnType != null)
                     throw new CTLexerException(node.ReturnToken, "Return type should be void.");
             }
-            else if (node.ReturnExpression.TypeName != function.TypeName)
+            else if (node.ReturnExpression.TypeName != functionReturnType)
             {
                 throw new CTLexerException(node.ReturnToken, 
-                    $"Return statement is of type {node.ReturnExpression.TypeName} but function expects {function.TypeName}.");
+                    $"Return statement is of type {node.ReturnExpression.TypeName} but function expects {functionReturnType}.");
             }
             
             if (Scope.LocalVariables.Count > 0)

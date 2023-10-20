@@ -4,6 +4,6 @@ u8 fib(u8 n)
 }
 
 u8 test2()
-{ 
-    return fib(30);
+{
+    return fib(30u8);
 }

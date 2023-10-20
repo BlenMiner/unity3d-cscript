@@ -23,6 +23,13 @@ namespace Riten.CScript.Lexer
         {
             Branches = branches;
             ElseBlockStatement = elseBlock;
+            
+            for (var i = 0; i < branches.Length; i++)
+            {
+                var branch = branches[i];
+                AddChild(branch.Condition);
+                AddChild(branch.BlockStatement);
+            }
         }
         
         public static CTNode Parse(CTLexer lexer)

@@ -11,6 +11,9 @@
             RepeatToken = repeatToken;
             Count = count;
             BlockStatement = blockStatement;
+            
+            AddChild(count);
+            AddChild(blockStatement);
         }
 
         public static CTNode Parse(CTLexer lexer)
