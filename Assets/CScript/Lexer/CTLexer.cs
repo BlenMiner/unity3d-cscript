@@ -52,6 +52,7 @@ public enum CTOptions
 [Serializable]
 public class CTLexer
 {
+    [SerializeField]
     private List<CToken> m_tokens = new ();
     
     [SerializeField]
@@ -283,14 +284,15 @@ public class CTLexer
     public CToken Peek()
     {
         if (m_parsingIndex >= m_tokens.Count)
-            throw new CTLexerException(new CSpan(), "Unexpected end of file.");
+            throw new CTLexerException(new CSpan(), "Unexpected end of file during token peeking.");
         return m_tokens[m_parsingIndex];
     }
 
     public CToken Consume()
     {
+        var val = Peek();
         m_parsingIndex++;
-        return Peek();
+        return val;
     }
 
     public void RegisterError(CTError error)
