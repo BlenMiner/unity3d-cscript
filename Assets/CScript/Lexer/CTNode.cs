@@ -14,7 +14,8 @@ public abstract class CTNode
 
 public class CTTypedNode : CTNode
 {
-    public string TypeName;
+    public const string UNSET_TYPE = "?";
+    public string TypeName = "?";
 }
 
 public class CTDefinition : CTNode

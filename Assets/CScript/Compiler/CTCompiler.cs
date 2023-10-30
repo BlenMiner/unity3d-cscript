@@ -33,6 +33,12 @@ namespace Riten.CScript.Compiler
         public readonly CTNode ScopeCreator;
 
         private int m_stackPtrOffset;
+        private readonly CTCompiler m_compiler;
+        
+        public bool TryGetFunctionSignature(string name, out FunctionSignature data)
+        {
+            return m_compiler.TypeSignatureResolver.TryGetFunctionSignature(name, out data);
+        }
         
         public CompiledFunction GetFunction(string name)
         {
@@ -47,6 +53,7 @@ namespace Riten.CScript.Compiler
 
         public Scope(CTCompiler compiler, CTNode creator, Scope parent, bool canAccessParentScope)
         {
+            m_compiler = compiler;
             ScopeCreator = creator;
             compiler.AllScopes.Add(this);
             ParentScope = parent;
@@ -58,7 +65,9 @@ namespace Riten.CScript.Compiler
         public void RegisterNewFunction(CompiledFunction function)
         {
             if (Functions.ContainsKey(function.FunctionName))
-                throw new Exception($"Another function with name '{function.FunctionName}' is already declared.");
+                throw new Exception($"Function {function.FunctionName} already exists in this scope.");
+            
+            m_compiler.TypeSignatureResolver.CompleteFunctionData(function.FunctionName, function.FunctionPtr);
             
             Functions.Add(function.FunctionName, function);
         }
@@ -132,13 +141,13 @@ namespace Riten.CScript.Compiler
         private readonly CTRoot m_root;
 
         public readonly Dictionary<int, TempFunctionCall> TemporaryFunctionCalls = new ();
-        
-        public TypeResolver TypeResolver { get; }
 
-        public CTCompiler(CTRoot root, TypeResolver typeResolver)
+        public readonly TypeSignatureResolver TypeSignatureResolver;
+
+        public CTCompiler(CTRoot root, TypeSignatureResolver typeSignatureResolver)
         {
             m_root = root;
-            TypeResolver = typeResolver;
+            TypeSignatureResolver = typeSignatureResolver;
             
             GlobalScope = new Scope(this, root, null, false);
         }

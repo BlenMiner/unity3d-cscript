@@ -1,9 +1,9 @@
-u8 fib(u8 n)
+f32 fib(f32 n)
 {
-    return n + 240;
+    return n + 240.69f;
 }
 
-u8 test2()
+f32 test2()
 {
-    return fib(30u8);
+    return fib(30);
 }

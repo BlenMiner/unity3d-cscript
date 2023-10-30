@@ -80,14 +80,14 @@ public class CTLexer
 
             if (char.IsDigit(c))
             {
-                while (end < source.Length && char.IsLetterOrDigit(source[end]))
+                while (end < source.Length && (char.IsLetterOrDigit(source[end]) || source[end] == '_' || source[end] == '.'))
                     end++;
 
                 AddToken(source, CTokenType.NUMBER, start, end);
             }
-            else if (char.IsLetter(c))
+            else if (char.IsLetter(c) || c == '_')
             {
-                while (end < source.Length && char.IsLetterOrDigit(source[end]))
+                while (end < source.Length && (char.IsLetterOrDigit(source[end]) || source[end] == '_'))
                     end++;
 
                 var span = source.ToCSpan(start, end);

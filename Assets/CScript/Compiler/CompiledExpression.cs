@@ -82,20 +82,20 @@ namespace Riten.CScript.Compiler
 
                     switch (typeLeft)
                     {
-                        case "?" when typeRight == "?":
+                        case CTTypedNode.UNSET_TYPE when typeRight == CTTypedNode.UNSET_TYPE:
                             op.Left.TypeName = m_typeHint;
                             op.Right.TypeName = m_typeHint;
                         
                             typeLeft = m_typeHint;
                             typeRight = m_typeHint;
                             break;
-                        case "?":
+                        case CTTypedNode.UNSET_TYPE:
                             op.Left.TypeName = typeRight;
                             typeLeft = typeRight;
                             break;
                         default:
                         {
-                            if (typeRight == "?")
+                            if (typeRight == CTTypedNode.UNSET_TYPE)
                             {
                                 op.Right.TypeName = typeLeft;
                                 typeRight = typeLeft;
@@ -119,7 +119,9 @@ namespace Riten.CScript.Compiler
                     fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.ReturnType.Span.Content;
                     break;
 
-                case CTConstValue:
+                case CTConstValue constType:
+                    if (constType.TypeName == CTTypedNode.UNSET_TYPE)
+                        constType.TypeName = m_typeHint;
                     break;
                 
                 default: throw new NotImplementedException($"Not implemented: node '{node.GetType().Name}' in expression during compilation type checking.");
@@ -148,9 +150,17 @@ namespace Riten.CScript.Compiler
                     var fnName = val.Identifier.Span.Content;
                     int actualArgCount = val.Arguments.Values.Length;
                     // List<CompiledExpression> compiledArgs = new(val.Arguments.Values.Length);
-                    
+
+                    if (!Scope.TryGetFunctionSignature(fnName, out var functionSig))
+                        throw new CTLexerException((CToken)default, $"Function {fnName} not found.");
+
                     for (int i = 0; i < actualArgCount; i++)
-                        new CompiledExpression(Compiler, Scope, val.Arguments.Values[i], level);
+                    {
+                        var expr = val.Arguments.Values[i];
+                        expr.SetTypeHint(functionSig.Arguments[i].Type);
+                        
+                        _ = new CompiledExpression(Compiler, Scope, expr, level);
+                    }
 
                     // ValidateFunctionArgumentTypes(val.Arguments.Values, compiledArgs);
                     

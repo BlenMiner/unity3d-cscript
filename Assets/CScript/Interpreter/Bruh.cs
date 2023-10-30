@@ -40,7 +40,7 @@ public class Bruh : MonoBehaviour
             var res = Interoperability.ExecuteFunctionFunc(m_scriptPtr, m_script.GetFunctionPtr("test2"));
             Profiler.EndSample();
             
-            Debug.Log(res);
+            Debug.Log(BitConverter.Int32BitsToSingle((int)res));
 
             Profiler.BeginSample("CScript C#");
 

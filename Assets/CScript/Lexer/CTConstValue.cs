@@ -21,11 +21,17 @@ namespace Riten.CScript.Lexer
                 if (constant.EndsWith(InternalTypeUtils.INTERNAL_TYPES[i]))
                 {
                     constant = constant[..^InternalTypeUtils.INTERNAL_TYPES[i].Length];
-                    return InternalTypeUtils.INTERNAL_TYPES[i];
+                    
+                    var type = InternalTypeUtils.INTERNAL_TYPES[i];
+                    
+                    if (type == "f")
+                        type = "f32";
+                    
+                    return type;
                 }
             }
-            
-            return constant.Contains('.') ? "f64" : "?";
+
+            return UNSET_TYPE;
         }
     }
 

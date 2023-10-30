@@ -33,9 +33,11 @@ namespace Riten.CScript.TypeChecker
     {
         public readonly string TypeName;
         public readonly TypeScope Parent;
+        public readonly TypeSignatureResolver SignatureResolver;
         
-        public TypeScope(string typeName, TypeScope parent)
+        public TypeScope(TypeSignatureResolver signatureResolver, string typeName, TypeScope parent)
         {
+            SignatureResolver = signatureResolver;
             TypeName = typeName;
             Parent = parent;
         }
@@ -54,16 +56,18 @@ namespace Riten.CScript.TypeChecker
     }
     
     [System.Serializable]
-    public class TypeResolver
+    public class TypeSignatureResolver
     {
         [SerializeField] List<FunctionSignature> m_functions = new ();
         
-        List<NamedType> m_types = new ();
+        readonly List<NamedType> m_types = new ();
         
-        TypeScope m_rootScope = new (string.Empty, null);
+        readonly TypeScope m_rootScope;
         
-        public TypeResolver(CTNode rootNode)
+        public TypeSignatureResolver(CTNode rootNode)
         {
+            m_rootScope = new TypeScope(this, string.Empty, null);
+            
             for (int i = 0; i < rootNode.Children.Count; i++)
             {
                 var child = rootNode.Children[i];
@@ -80,7 +84,7 @@ namespace Riten.CScript.TypeChecker
                     var localTypeName = function.FunctionName.Span.Content;
                     var typeSignature = scope.GetSignatureFromLocalName(localTypeName);
                     RegisterNewFunction(function, typeSignature);
-                    ResolveChildren(node, new TypeScope(localTypeName, scope));
+                    ResolveChildren(node, new TypeScope(this, localTypeName, scope));
                     break;
                 }
                 
@@ -118,6 +122,36 @@ namespace Riten.CScript.TypeChecker
                 m_types.ToArray(),
                 function.ReturnType.Span.Content
             ));
+        }
+
+        public void CompleteFunctionData(string functionName, int functionFunctionPtr)
+        {
+            for (int i = 0; i < m_functions.Count; i++)
+            {
+                var function = m_functions[i];
+                if (function.Name == functionName)
+                {
+                    function.CompilePtr = functionFunctionPtr;
+                    m_functions[i] = function;
+                    return;
+                }
+            }
+        }
+
+        public bool TryGetFunctionSignature(string name, out FunctionSignature data)
+        {
+            for (int i = 0; i < m_functions.Count; i++)
+            {
+                var function = m_functions[i];
+                if (function.Name == name)
+                {
+                    data = function;
+                    return true;
+                }
+            }
+            
+            data = default;
+            return false;
         }
     }
 }

@@ -35,20 +35,31 @@ namespace Riten.CScript.Compiler
 
             value = value.Replace("--", "").Replace("++", "");
 
-            return internalType switch
+            long type;
+            
+            try
             {
-                InternalType.I8 => sbyte.Parse(value),
-                InternalType.I16 => short.Parse(value),
-                InternalType.I32 => int.Parse(value),
-                InternalType.I64 => long.Parse(value),
-                InternalType.U8 => byte.Parse(value),
-                InternalType.U16 => ushort.Parse(value),
-                InternalType.U32 => uint.Parse(value),
-                InternalType.U64 => BitConverter.ToInt64(BitConverter.GetBytes(ulong.Parse(value))),
-                InternalType.F64 => BitConverter.DoubleToInt64Bits(double.Parse(value)),
-                InternalType.F32 => BitConverter.SingleToInt32Bits(float.Parse(value)),
-                _ => throw new NotImplementedException($"Cannot get value bits for type {typeName}")
-            };
+                type = internalType switch
+                {
+                    InternalType.I8 => sbyte.Parse(value),
+                    InternalType.I16 => short.Parse(value),
+                    InternalType.I32 => int.Parse(value),
+                    InternalType.I64 => long.Parse(value),
+                    InternalType.U8 => byte.Parse(value),
+                    InternalType.U16 => ushort.Parse(value),
+                    InternalType.U32 => uint.Parse(value),
+                    InternalType.U64 => BitConverter.ToInt64(BitConverter.GetBytes(ulong.Parse(value))),
+                    InternalType.F64 => BitConverter.DoubleToInt64Bits(double.Parse(value)),
+                    InternalType.F32 => BitConverter.SingleToInt32Bits(float.Parse(value)),
+                    _ => throw new NotImplementedException()
+                };
+            }
+            catch
+            {
+                throw new CTLexerException((CToken)default, $"Couldn't parse value '{value}' as type '{typeName}'");
+            }
+
+            return type;
         }
         
         public static void CompileAdd(CTCompiler compiler, string typeA, string typeB)
