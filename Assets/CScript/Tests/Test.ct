@@ -1,9 +1,12 @@
 i32 fib(i32 n)
 {
-    return fib(n-1) + test(n*2);
+    if (n <= 1) {
+        return n;
+    }
+    return fib(n-1) + fib(n-2);
 }
 
-i32 test(i32 v)
+i32 test2()
 {
-return v;
-}
+    return fib(30);
+} 
