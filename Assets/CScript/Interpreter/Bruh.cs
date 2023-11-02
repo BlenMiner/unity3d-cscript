@@ -17,7 +17,7 @@ public class Bruh : MonoBehaviour
         m_scriptPtr = Interoperability.CreateProgramFunc(m_script.Compiled, m_script.Compiled.Length);
     }
     
-    long fib(long n)
+    int fib(int n)
     {
         if (n <= 1)
         {
@@ -27,7 +27,7 @@ public class Bruh : MonoBehaviour
         return fib(n + -1) + fib(n + -2);
     }
 
-    long test2()
+    int test2()
     {
         return fib(30);
     }
@@ -40,7 +40,7 @@ public class Bruh : MonoBehaviour
             var res = Interoperability.ExecuteFunctionFunc(m_scriptPtr, m_script.GetFunctionPtr("test2"));
             Profiler.EndSample();
             
-            Debug.Log(BitConverter.Int32BitsToSingle((int)res));
+            Debug.Log(res);
 
             Profiler.BeginSample("CScript C#");
 

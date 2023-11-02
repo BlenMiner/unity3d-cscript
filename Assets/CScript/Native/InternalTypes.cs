@@ -22,6 +22,60 @@ namespace Riten.CScript.Native
             "f"
         };
         
+        public static Opcodes InternalTypeToPopToSPTR(this InternalType type)
+        {
+            return type switch
+            {
+                InternalType.I8 => Opcodes.POP_TO_SPTR_I8,
+                InternalType.U8 => Opcodes.POP_TO_SPTR_I8,
+                InternalType.I16 => Opcodes.POP_TO_SPTR_I16,
+                InternalType.U16 => Opcodes.POP_TO_SPTR_I16,
+                InternalType.I32 => Opcodes.POP_TO_SPTR_I32,
+                InternalType.U32 => Opcodes.POP_TO_SPTR_I32,
+                InternalType.I64 => Opcodes.POP_TO_SPTR_I64,
+                InternalType.U64 => Opcodes.POP_TO_SPTR_I64,
+                InternalType.F32 => Opcodes.POP_TO_SPTR_F32,
+                InternalType.F64 => Opcodes.POP_TO_SPTR_F64,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get popper.")
+            };
+        }
+        
+        public static Opcodes InternalTypeToPushOpcode(this InternalType type)
+        {
+            return type switch
+            {
+                InternalType.I8 => Opcodes.PUSH_I8,
+                InternalType.U8 => Opcodes.PUSH_I8,
+                InternalType.I16 => Opcodes.PUSH_I16,
+                InternalType.U16 => Opcodes.PUSH_I16,
+                InternalType.I32 => Opcodes.PUSH_I32,
+                InternalType.U32 => Opcodes.PUSH_I32,
+                InternalType.I64 => Opcodes.PUSH_I64,
+                InternalType.U64 => Opcodes.PUSH_I64,
+                InternalType.F32 => Opcodes.PUSH_F32,
+                InternalType.F64 => Opcodes.PUSH_F64,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get pusher.")
+            };
+        }
+        
+        public static Opcodes InternalTypeToPushSPTROpcode(this InternalType type)
+        {
+            return type switch
+            {
+                InternalType.I8 => Opcodes.PUSH_SPTR_I8,
+                InternalType.U8 => Opcodes.PUSH_SPTR_I8,
+                InternalType.I16 => Opcodes.PUSH_SPTR_I16,
+                InternalType.U16 => Opcodes.PUSH_SPTR_I16,
+                InternalType.I32 => Opcodes.PUSH_SPTR_I32,
+                InternalType.U32 => Opcodes.PUSH_SPTR_I32,
+                InternalType.I64 => Opcodes.PUSH_SPTR_I64,
+                InternalType.U64 => Opcodes.PUSH_SPTR_I64,
+                InternalType.F32 => Opcodes.PUSH_SPTR_F32,
+                InternalType.F64 => Opcodes.PUSH_SPTR_F64,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get pusher.")
+            };
+        }
+        
         public static Opcodes InternalTypeToAddOpcode(this InternalType type)
         {
             return type switch
@@ -37,6 +91,24 @@ namespace Riten.CScript.Native
                 InternalType.F32 => Opcodes.ADD_F32,
                 InternalType.F64 => Opcodes.ADD_F64,
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get adder.")
+            };
+        }
+        
+        public static Opcodes InternalTypeToLessOrEqualOpcode(this InternalType type)
+        {
+            return type switch
+            {
+                InternalType.I8 => Opcodes.LESS_OR_EQUAL_I8,
+                InternalType.U8 => Opcodes.LESS_OR_EQUAL_I8,
+                InternalType.I16 => Opcodes.LESS_OR_EQUAL_I16,
+                InternalType.U16 => Opcodes.LESS_OR_EQUAL_I16,
+                InternalType.I32 => Opcodes.LESS_OR_EQUAL_I32,
+                InternalType.U32 => Opcodes.LESS_OR_EQUAL_I32,
+                InternalType.I64 => Opcodes.LESS_OR_EQUAL_I64,
+                InternalType.U64 => Opcodes.LESS_OR_EQUAL_I64,
+                InternalType.F32 => Opcodes.LESS_OR_EQUAL_F32,
+                InternalType.F64 => Opcodes.LESS_OR_EQUAL_F64,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get less or equal.")
             };
         }
         

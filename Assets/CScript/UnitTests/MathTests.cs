@@ -15,8 +15,8 @@ namespace CScript.UnitTests
             
             var program = new[]
             {
-                new Instruction(Opcodes.PUSH_CONST, 6),
-                new Instruction(Opcodes.ADD_CONST, 4),
+                new Instruction(Opcodes.PUSH_I64, 6),
+                new Instruction(Opcodes.ADD_I64, 4),
             };
             
 

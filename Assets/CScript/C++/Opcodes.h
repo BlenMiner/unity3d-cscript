@@ -3,6 +3,7 @@
 #include "Stack.h"
 
 #define NEXT_INSTRUCTION program->IP++
+#define HALT program->IP = program->instructionsCount - 1
 #define OPCODE_DEFINITION(name) void name##_IMP(Program* program, Stack* stack, const SaturatedInstruction& context)
 
 #define INT_OPCODE(X) \
@@ -42,18 +43,17 @@ OPCODE(X##_F64, double)
 	INT_OPCODE(BIT_XOR)\
 	INT_OPCODE(BIT_SHIFT_LEFT)\
 	INT_OPCODE(BIT_SHIFT_RIGHT)\
-	\
-    OPCODE(ADD_CONST, void)\
-    OPCODE(ADD_CONST_TO_SPTR, void)\
-    OPCODE(ADD_SPTR_SPTR_INTO_SPTR, void)\
-	\
-    OPCODE(PUSH_CONST, void) \
-    OPCODE(PUSH_SPTR, void) \
-    OPCODE(PUSH_SPTR_AND_CONST, void) \
-    OPCODE(PUSH_CONST_TO_SPTR, void) \
     \
-    OPCODE(POP, void) \
-    OPCODE(POP_TO_SPTR, void) \
+	\
+	INT_OPCODE(PUSH)\
+	FLOAT_OPCODE(PUSH)\
+	\
+	INT_OPCODE(PUSH_SPTR)\
+	FLOAT_OPCODE(PUSH_SPTR)\
+    \
+	INT_OPCODE(POP_TO_SPTR)\
+	FLOAT_OPCODE(POP_TO_SPTR)\
+    \
     OPCODE(RESERVE, void) \
     OPCODE(DISCARD, void) \
     \
@@ -67,7 +67,8 @@ OPCODE(X##_F64, double)
 	\
     OPCODE(COPY_FROM_SPTR_TO_SPTR, void) \
 	\
-    OPCODE(LESS_OR_EQUAL, void) \
+	INT_OPCODE(LESS_OR_EQUAL)\
+	FLOAT_OPCODE(LESS_OR_EQUAL)\
 
 
 #define OPCODE(x, y) x,
@@ -178,8 +179,11 @@ struct Program
 
 		for (auto i = 0; i < instructionsCount; i++)
 		{
-			this->instructions[i].InitializeSaturatedInstruction(instructions[i]);
-			this->instructions[i].safeToExecuteBlindlyCount = GetSafeToExecuteBlindlyCount(instructions, i);
+			SaturatedInstruction instruction;
+			instruction.InitializeSaturatedInstruction(instructions[i]);
+			instruction.safeToExecuteBlindlyCount = GetSafeToExecuteBlindlyCount(instructions, i);
+
+			this->instructions[i] = instruction;
 		}
 
 		IP = 0;
@@ -223,7 +227,7 @@ struct Program
 	Stack* stack;
 	SaturatedInstruction* instructions;
 	int instructionsCount;
-	unsigned long long IP;
+	int IP;
 };
 
 #define OPCODE(x, y) OPCODE_DEFINITION(x);

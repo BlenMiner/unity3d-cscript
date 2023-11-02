@@ -5,45 +5,73 @@
 
 struct Stack
 {
-	Stack(long long size = 1024 * 1024)
+	Stack(int size = 1024 * 1024)
 	{
 		this->size = size;
-		data = new long long[size];
+		rawData = new char[size];
 		ResetSP();
 	}
 
 	~Stack()
 	{
-		delete[] data;
+		delete[] rawData;
 	}
 
-	long long PEEK()
+	template<class T>
+	T PEEK()
 	{
-		return data[SP];
+		char* dataPtr = rawData + SP;
+		return *(T*)dataPtr;
 	}
 
-	void DUP()
+	template<class T>
+	void REPLACE(const T value)
 	{
-		long long value = data[SP--];
-		data[SP] = value;
+		char* dataPtr = rawData + SP;
+		*(T*)dataPtr = value;
 	}
 
-	void PUSH(const long long value)
+	template<class T>
+	void PUSH(const T value)
 	{
-		data[--SP] = value;
+		SP -= sizeof(T);
+		*(T*)(rawData + SP) = value;
 	}
 
-	void POP_DISCARD()
+	void DISCARD(int count)
 	{
-		++SP;
+		SP += count;
 	}
 
-	long long POP()
+	void RESERVE(int count)
 	{
-		return data[SP++];
+		SP -= count;
 	}
 
-	long long GetPushedSize()
+	template<class T>
+	T POP()
+	{
+		char* dataPtr = rawData + SP;
+		SP += sizeof(T);
+
+		return *(T*)dataPtr;
+	}
+
+	template<class T>
+	T GET_VAR(long long offset)
+	{
+		char* dataPtr = rawData + SCOPE_SP - offset - sizeof(T);
+		return *(T*)dataPtr;
+	}
+
+	template<class T>
+	void SET_VAR(long long offset, T value)
+	{
+		char* dataPtr = rawData + SCOPE_SP - offset - sizeof(T);
+		*(T*)dataPtr = value;
+	}
+
+	int GetPushedSize()
 	{
 		return size - SP;
 	}
@@ -51,13 +79,13 @@ struct Stack
 	void ResetSP()
 	{
 		SP = size;
-		SCOPE_SP = SP - 1;
+		SCOPE_SP = SP;
 	}
 
-	long long SCOPE_SP;
-	long long SP;
-	long long* data;
+	int SCOPE_SP;
+	int SP;
+	char* rawData;
 
 private:
-	long long size;
+	int size;
 };

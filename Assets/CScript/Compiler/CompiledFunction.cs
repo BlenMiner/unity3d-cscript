@@ -39,10 +39,13 @@ namespace Riten.CScript.Compiler
             switch (statement)
             {
                 case CTDeclareStatement declare:
+                    
+                    var size = CTypeResolver.GetBuiltinSize(declare.Type.Span.Content);
+
                     scope.RegisterNewVariable(
                         declare.Identifier.Span.Content, 
                         declare.Type.Span.Content, 
-                        1,
+                        size,
                         level
                     );
                     break;
@@ -69,10 +72,12 @@ namespace Riten.CScript.Compiler
             for (int i = 0; i < args.Count; ++i)
             {
                 var argument = args[i];
+                var size = CTypeResolver.GetBuiltinSize(argument.ArgumentType.Span.Content);
+                
                 scope.RegisterNewVariable(
                     argument.ArgumentName.Span.Content,
                     argument.ArgumentType.Span.Content,
-                    1, level
+                    size, level
                 );
             }
             

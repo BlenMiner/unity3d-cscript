@@ -15,9 +15,13 @@ namespace Riten.CScript.Editor
             var operand3 = property.FindPropertyRelative("Operand3").intValue;
             
             string content = opcode.ToString();
+            var opcodeName = opcode.ToString();
             
-            if (opcode.ToString().StartsWith("ADD") || opcode is Opcodes.DUP or Opcodes.POP or Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
-                or Opcodes.RETURN or Opcodes.LESS_OR_EQUAL)
+            bool isMath = opcodeName.StartsWith("ADD") || opcodeName.StartsWith("SUB") || opcodeName.StartsWith("MUL") || opcodeName.StartsWith("DIV");
+            bool isCompare = opcodeName.StartsWith("LESS") || opcodeName.StartsWith("GREATER") || opcodeName.StartsWith("EQUAL");
+            
+            if (isMath || isCompare || opcode is Opcodes.REPEAT or Opcodes.REPEAT_END or Opcodes.REPEAT 
+                or Opcodes.RETURN)
             {
                 GUI.Label(position, content);
                 return;
@@ -27,14 +31,8 @@ namespace Riten.CScript.Editor
 
             switch (opcode)
             {
-                case Opcodes.PUSH_CONST_TO_SPTR or Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR or Opcodes.CALL_ARGS
-                    or Opcodes.PUSH_SPTR_AND_CONST:
+                case Opcodes.COPY_FROM_SPTR_TO_SPTR or Opcodes.SWAP_SPTR_SPTR or Opcodes.CALL_ARGS:
                     content += ", " + operand2;
-                    break;
-                
-                case Opcodes.ADD_SPTR_SPTR_INTO_SPTR:
-                    content += ", " + operand2;
-                    content += ", " + operand3;
                     break;
             }
 

@@ -27,7 +27,7 @@ namespace Riten.CScript.Compiler
             var variable = scope.ReadVariable(variableIdentifier, level);
             scope.RegisterWrite(variableIdentifier);
             
-            Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, variable.StackPointer));
+            CTypeResolver.CompilePopToSPTR(Compiler, Expression.TypeName, variable.StackPointer);
         }
     }
 }

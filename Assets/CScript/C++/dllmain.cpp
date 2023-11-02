@@ -69,15 +69,25 @@ void DoExecute(Program* program, const unsigned long long length, Stack* stackPt
 
 		switch (inst.safeToExecuteBlindlyCount)
 		{
+		case 20: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 19: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 18: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 17: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 16: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 15: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 14: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 13: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 12: ExecuteInstructionImp(program, instructions, stackPtr);
+		case 11: ExecuteInstructionImp(program, instructions, stackPtr);
 		case 10: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 9: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 8: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 7: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 6: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 5: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 4: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 3: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 2: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  9: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  8: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  7: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  6: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  5: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  4: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  3: ExecuteInstructionImp(program, instructions, stackPtr);
+		case  2: ExecuteInstructionImp(program, instructions, stackPtr);
 			break;
 		}
 	}
@@ -85,15 +95,7 @@ void DoExecute(Program* program, const unsigned long long length, Stack* stackPt
 
 void ExecuteInstruction(Program* program, Stack* stack)
 {
-	auto inst = program->instructions[program->IP];
-	inst.function(program, stack, inst);
-	
-/*#define OPCODE(x) case x: x##_IMP(program, stack, inst); break;
-	switch (inst.opcode)
-	{
-		OPCODE_LIST
-	}
-#undef OPCODE*/
+	ExecuteInstructionImp(program, program->instructions, stack);
 }
 
 long long ExecuteProgram(Program* program)
@@ -102,11 +104,10 @@ long long ExecuteProgram(Program* program)
 	Stack* stackPtr = program->stack;
 
 	program->IP = 0;
-	stackPtr->ResetSP();
 
 	DoExecute(program, length, stackPtr);
 
-	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
+	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK<long long>() : 0;
 }
 
 long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
@@ -119,7 +120,7 @@ long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
 
 	DoExecute(program, length, stackPtr);
 
-	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
+	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK<long long>() : 0;
 }
 
 long long ExecuteFunction(Program* program, const int functionIP)
@@ -129,15 +130,15 @@ long long ExecuteFunction(Program* program, const int functionIP)
 
 	stackPtr->ResetSP();
 
-	stackPtr->PUSH(stackPtr->SCOPE_SP);
-	stackPtr->PUSH(length - 1);
+	stackPtr->PUSH<int>(stackPtr->SCOPE_SP);
+	stackPtr->PUSH<int>(program->instructionsCount - 1);
 
 	program->IP = functionIP;
-	stackPtr->SCOPE_SP = stackPtr->SP - 1;
+	stackPtr->SCOPE_SP = stackPtr->SP;
 
 	DoExecute(program, length, stackPtr);
 
-	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK() : 0;
+	return stackPtr->GetPushedSize() > 0 ? stackPtr->PEEK<long long>() : 0;
 }
 
 void SaturatedInstruction::InitializeSaturatedInstruction(const Instruction& instruction)

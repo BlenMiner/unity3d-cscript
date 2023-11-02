@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using Riten.CScript.Lexer;
 using Riten.CScript.Native;
-using UnityEngine;
+using Unity.Plastic.Antlr3.Runtime.Tree;
 
 namespace Riten.CScript.Compiler
 {
@@ -29,7 +28,7 @@ namespace Riten.CScript.Compiler
             
             CompileExpression(ExpressionNode.TreeRoot, level);
 
-            StackSize = 1;
+            StackSize = CTypeResolver.GetBuiltinSize(ExpressionNode.TypeName);
         }
         
         long GetConstValue(CTConstValue value, bool negateResult)
@@ -44,8 +43,7 @@ namespace Riten.CScript.Compiler
             {
                 case CTokenType.PLUS: break;
                 case CTokenType.MINUS:
-                    
-                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, GetConstValue(value, true)));
+                    CTypeResolver.CompilePush(Compiler, value.TypeName, value.ValueString, true);
                     break;
                 
                 default: throw new NotImplementedException($"Unary operator {op.Operator.Type} not implemented");
@@ -61,9 +59,25 @@ namespace Riten.CScript.Compiler
                     break;
                 
                 case CTokenType.LESS_THAN_OR_EQUAL:
-                    Compiler.Instructions.Add(new Instruction(Opcodes.LESS_OR_EQUAL));
+                    CTypeResolver.CompileLessOrEqual(Compiler, op.Left.TypeName, op.Right.TypeName);
                     break;
                 
+                case CTokenType.MINUS:
+                    CTypeResolver.CompileMinus(Compiler, op.Left.TypeName, op.Right.TypeName);
+                    break;
+                
+                case CTokenType.MULTIPLY:
+                    CTypeResolver.CompileMult(Compiler, op.Left.TypeName, op.Right.TypeName);
+                    break;
+                
+                case CTokenType.DIVIDE:
+                    CTypeResolver.CompileDiv(Compiler, op.Left.TypeName, op.Right.TypeName);
+                    break;
+                
+                case CTokenType.BIT_AND:
+                    CTypeResolver.CompileAnd(Compiler, op.Left.TypeName, op.Right.TypeName);
+                    break;
+
                 default: throw new NotImplementedException($"Operator {op.Operator.Type} not implemented");
             }
         }
@@ -116,7 +130,11 @@ namespace Riten.CScript.Compiler
                     break;
                 
                 case CTFunctionCallExpression fnCall:
-                    fnCall.TypeName = scope.GetFunction(fnCall.Identifier.Span.Content).Function.ReturnType.Span.Content;
+
+                    if (!scope.TryGetFunctionSignature(fnCall.Identifier.Span.Content, out var functionSig))
+                        throw new CTLexerException(fnCall.Identifier, $"Function {fnCall.Identifier.Span.Content} not found.");
+                    
+                    fnCall.TypeName = functionSig.ReturnType;
                     break;
 
                 case CTConstValue constType:
@@ -149,7 +167,7 @@ namespace Riten.CScript.Compiler
                 case CTFunctionCallExpression val:
                     var fnName = val.Identifier.Span.Content;
                     int actualArgCount = val.Arguments.Values.Length;
-                    // List<CompiledExpression> compiledArgs = new(val.Arguments.Values.Length);
+                    int argSize = 0;
 
                     if (!Scope.TryGetFunctionSignature(fnName, out var functionSig))
                         throw new CTLexerException((CToken)default, $"Function {fnName} not found.");
@@ -158,6 +176,7 @@ namespace Riten.CScript.Compiler
                     {
                         var expr = val.Arguments.Values[i];
                         expr.SetTypeHint(functionSig.Arguments[i].Type);
+                        argSize += CTypeResolver.GetBuiltinSize(expr.TypeName);
                         
                         _ = new CompiledExpression(Compiler, Scope, expr, level);
                     }
@@ -167,17 +186,16 @@ namespace Riten.CScript.Compiler
                     Compiler.TemporaryFunctionCalls.Add(Compiler.Instructions.Count, new TempFunctionCall(fnName, actualArgCount, Scope));
 
                     Compiler.Instructions.Add(actualArgCount > 0
-                        ? new Instruction(Opcodes.CALL_ARGS, -1, actualArgCount)
-                        : new Instruction(Opcodes.CALL, -1, actualArgCount));
+                        ? new Instruction(Opcodes.CALL_ARGS, -1, argSize)
+                        : new Instruction(Opcodes.CALL, -1, argSize));
 
                     break;
                 case CTConstValue val:
-                    var value = GetConstValue(val, false);
-                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_CONST, value));
+                    CTypeResolver.CompilePush(Compiler, val.TypeName, val.ValueString, false);
                     break;
                 case CTVariable var:
                     var variable = Scope.ReadVariable(var.Identifier.Span.Content, level);
-                    Compiler.Instructions.Add(new Instruction(Opcodes.PUSH_SPTR, variable.StackPointer));
+                    CTypeResolver.CompilePushSPTR(Compiler, variable.TypeName, variable.StackPointer);
                     break;
                 default: throw new Exception($"Unexpected node type {node.GetType().Name} in expression during compilation.");
             }

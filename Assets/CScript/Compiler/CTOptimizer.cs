@@ -8,12 +8,13 @@ namespace Riten.CScript.Compiler
     {
         static readonly CTOptimizerRule[] s_rules = {
             /*new (Optimize_ADD_SPTR_SPTR_To_SPTR, Opcodes.PUSH_SPTR, Opcodes.PUSH_SPTR, Opcodes.ADD, Opcodes.POP_TO_SPTR),
-            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD), */
+            new (OptimizePushConst, Opcodes.PUSH_CONST, Opcodes.ADD), 
             new (OptimizePushConstAddConst, Opcodes.PUSH_CONST, Opcodes.ADD_CONST),
             new (OptimizePushConstToSPTR, Opcodes.PUSH_CONST, Opcodes.POP_TO_SPTR),
             new (OptimizeCopyFromSPRTToSPTR, Opcodes.PUSH_SPTR, Opcodes.POP_TO_SPTR),
             new (Optimize_PushConst_Repeat, Opcodes.PUSH_CONST, Opcodes.REPEAT),
-            new (Optimize_PushSptr_With_Const, Opcodes.PUSH_SPTR, Opcodes.PUSH_CONST),
+            new (Optimize_PushSptr_With_Const, Opcodes.PUSH_SPTR, Opcodes.PUSH_CONST),*/
+            new (Optimize_RETURN_RETURN, Opcodes.RETURN, Opcodes.RETURN),
         };
         
         static void OffsetAllPointers(CTCompiler cmp, int pastValue, int offset)
@@ -22,7 +23,7 @@ namespace Riten.CScript.Compiler
             {
                 foreach (var fnc in scope.Functions)
                 {
-                    if (fnc.Value.FunctionPtr >= pastValue)
+                    if (fnc.Value.FunctionPtr > pastValue)
                         fnc.Value.FunctionPtr += offset;
                 }
             }
@@ -44,7 +45,13 @@ namespace Riten.CScript.Compiler
             }
         }
         
-        static void Optimize_PushSptr_With_Const(CTCompiler cmp,List<Instruction> program, int index)
+        static void Optimize_RETURN_RETURN(CTCompiler cmp, List<Instruction> program, int index)
+        {
+            program.RemoveAt(index);
+            OffsetAllPointers(cmp, index, -1);
+        }
+        
+        /*static void Optimize_PushSptr_With_Const(CTCompiler cmp,List<Instruction> program, int index)
         {
             var sptr = program[index].Operand;
             var constValue = program[index + 1].Operand;
@@ -72,7 +79,7 @@ namespace Riten.CScript.Compiler
             program.Insert(index, new Instruction(Opcodes.ADD_SPTR_SPTR_INTO_SPTR, add0, add1, to));
             
             OffsetAllPointers(cmp, index, -2);
-        }
+        }*/
         
         static void OptimizeCopyFromSPRTToSPTR(CTCompiler cmp, List<Instruction> program, int index)
         {
@@ -91,7 +98,7 @@ namespace Riten.CScript.Compiler
             OffsetAllPointers(cmp, index, -1);
         }
         
-        static void OptimizePushConstToSPTR(CTCompiler cmp,List<Instruction> program, int index)
+        /*static void OptimizePushConstToSPTR(CTCompiler cmp,List<Instruction> program, int index)
         {
             long value = program[index].Operand;
             long ptr = program[index + 1].Operand;
@@ -119,11 +126,50 @@ namespace Riten.CScript.Compiler
             program.Insert(index, new Instruction(Opcodes.PUSH_CONST, valueA + valueB));
             
             OffsetAllPointers(cmp, index, -1);
-        }
+        }*/
 
         public static void Optimize(CTCompiler compiler, List<Instruction> instruction)
         {
             int whileCount = 0;
+
+            // Compiler.Instructions.Add(new Instruction(
+           /* Opcodes.CALL_ARGS_RESERVE, -1,
+            actualArgCount,
+                ));*/
+            for (int i = 0; i < instruction.Count; i++)
+            {
+                var inst = instruction[i];
+
+                switch (inst)
+                {
+                    case { Opcode: (int)Opcodes.RESERVE, Operand: 0 }:
+                        instruction.RemoveAt(i);
+                        OffsetAllPointers(compiler, i, -1);
+                        i--;
+                        break;
+                    case { Opcode: (int)Opcodes.DISCARD, Operand: 0 }:
+                        instruction.RemoveAt(i--);
+                        OffsetAllPointers(compiler, i, -1);
+                        break;
+                    /*case {Opcode: (int)Opcodes.CALL_ARGS }:
+                        int targetCallInst = (int)inst.Operand;
+
+                        var targetJump = instruction[targetCallInst];
+
+                        if (targetJump.Opcode == (int)Opcodes.RESERVE)
+                        {
+                            var reserve = targetJump.Operand;
+                            instruction[i] = new Instruction(Opcodes.CALL_ARGS_RESERVE, inst.Operand, inst.Operand2,
+                                reserve);
+                        }
+                        
+                        instruction.RemoveAt(targetCallInst);
+                        OffsetAllPointers(compiler, targetCallInst, -1);
+                        
+                        break;*/
+                }
+            }
+            
             while (true)
             {
                 int matchCount = 0;

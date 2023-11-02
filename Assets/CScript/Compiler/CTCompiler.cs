@@ -48,7 +48,7 @@ namespace Riten.CScript.Compiler
             if (ParentScope != null)
                 return ParentScope.GetFunction(name);
 
-            throw new Exception($"Couldn't find function '{name}' during compilation.");
+            throw new CTLexerException((CToken)default, $"Couldn't find function '{name}' during compilation.");
         }
 
         public Scope(CTCompiler compiler, CTNode creator, Scope parent, bool canAccessParentScope)
@@ -156,35 +156,35 @@ namespace Riten.CScript.Compiler
         {
             switch (node)
             {
-                case CTExpression expression: 
+                case CTExpression expression:
                     return new CompiledExpression(this, scope, expression, level);
-                
+
                 case CTAssignStatement statement:
                     return new CompiledAssignStatement(this, scope, statement, level);
-                
-                case CTDeclareStatement statement: 
+
+                case CTDeclareStatement statement:
                     return new CompiledDeclareStatement(this, scope, statement, level);
-                
+
                 case CTFunction function:
                     var fn = new CompiledFunction(this, scope, function, level);
                     scope.RegisterNewFunction(fn);
                     return fn;
-                
+
                 case CTReturnStatement statement:
                     return new CompiledReturnStatement(this, scope, statement, level);
-                
+
                 case CTRepeatBlockStatement statement:
                     return new CompiledRepeatStatement(this, scope, statement, level);
-                
+
                 case CTSwapStatement statement:
                     return new CompiledSwapStatement(this, scope, statement, level);
-                
+
                 case CTIfStatement statement:
                     return new CompiledIfStatement(this, scope, statement, level);
-                
+
                 /*case CTStructDefinition definition:
                     return null; // return new CompiledStructDefinition(this, scope, definition, level);*/
-                
+
                 default: throw new NotImplementedException($"Instruction {node.GetType().Name} not implemented");
             }
         }
@@ -201,7 +201,9 @@ namespace Riten.CScript.Compiler
                         $"Function {value.FunctionName} expects {fn.Function.Arguments.Values.Count} arguments, but {value.ExpectedArgumentCount} were provided.");
                 }
 
-                Instructions[key] = new Instruction((Opcodes)Instructions[key].Opcode, fn.FunctionPtr, value.ExpectedArgumentCount);
+                var instValue = Instructions[key];
+                
+                Instructions[key] = new Instruction((Opcodes)instValue.Opcode, fn.FunctionPtr, instValue.Operand2);
                 
                 
             }

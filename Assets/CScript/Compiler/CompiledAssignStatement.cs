@@ -26,7 +26,7 @@ namespace Riten.CScript.Compiler
                     $"Assigning value of type {Expression.TypeName} but declared as {variable.TypeName}.");
             }
             
-            Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, variable.StackPointer));
+            CTypeResolver.CompilePopToSPTR(Compiler, Expression.TypeName, variable.StackPointer);
         }
     }
 }

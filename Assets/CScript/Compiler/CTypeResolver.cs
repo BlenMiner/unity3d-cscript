@@ -62,6 +62,80 @@ namespace Riten.CScript.Compiler
             return type;
         }
         
+        public static int GetBuiltinSize(string typeName)
+        {
+            var internalType = ResolveType(typeName);
+            
+            int size;
+            
+            try
+            {
+                size = internalType switch
+                {
+                    InternalType.I8 => sizeof(sbyte),
+                    InternalType.I16 => sizeof(short),
+                    InternalType.I32 => sizeof(int),
+                    InternalType.I64 => sizeof(long),
+                    InternalType.U8 => sizeof(byte),
+                    InternalType.U16 => sizeof(ushort),
+                    InternalType.U32 => sizeof(uint),
+                    InternalType.U64 => sizeof(ulong),
+                    InternalType.F64 => sizeof(double),
+                    InternalType.F32 => sizeof(float),
+                    _ => throw new NotImplementedException()
+                };
+            }
+            catch
+            {
+                throw new CTLexerException((CToken)default, $"Couldn't get sizeof builtin type: '{typeName}'");
+            }
+
+            return size;
+        }
+        
+        public static void CompilePush(CTCompiler compiler, string type, string value, bool negate)
+        {
+            var internalType = ResolveType(type);
+
+            if (internalType != InternalType.CustomType)
+            {
+                var opcode = internalType.InternalTypeToPushOpcode();
+                var valueBits = GetValueBits(type, value, negate);
+                compiler.Instructions.Add(new Instruction(opcode, valueBits));
+                return;
+            }
+            
+            throw new NotImplementedException($"Can't push '{type}' since it's not internal type");
+        }
+        
+        public static void CompilePopToSPTR(CTCompiler compiler, string type, int offset)
+        {
+            var internalType = ResolveType(type);
+
+            if (internalType != InternalType.CustomType)
+            {
+                var opcode = internalType.InternalTypeToPopToSPTR();
+                compiler.Instructions.Add(new Instruction(opcode, offset));
+                return;
+            }
+            
+            throw new NotImplementedException($"Can't pop to SPTR '{type}' since it's not internal type");
+        }
+        
+        public static void CompilePushSPTR(CTCompiler compiler, string type, int offset)
+        {
+            var internalType = ResolveType(type);
+
+            if (internalType != InternalType.CustomType)
+            {
+                var opcode = internalType.InternalTypeToPushSPTROpcode();
+                compiler.Instructions.Add(new Instruction(opcode, offset));
+                return;
+            }
+            
+            throw new NotImplementedException($"Can't push from SPTR as '{type}' since it's not internal type");
+        }
+        
         public static void CompileAdd(CTCompiler compiler, string typeA, string typeB)
         {
             var internalTypeA = ResolveType(typeA);
@@ -75,6 +149,96 @@ namespace Riten.CScript.Compiler
             }
             
             throw new NotImplementedException($"Addition of {typeA} and {typeB} not implemented");
+        }
+        
+        public static void CompileMinus(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToSubOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Substraction of {typeA} and {typeB} not implemented");
+        }
+        
+        public static void CompileLessOrEqual(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToLessOrEqualOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Substraction of {typeA} and {typeB} not implemented");
+        }
+
+        public static void CompileMult(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToMultOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Multiplication of {typeA} and {typeB} not implemented");
+        }
+        
+        public static void CompileDiv(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToDivOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Division of {typeA} and {typeB} not implemented");
+        }
+        
+        public static void CompileMod(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToModuloOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Modulo of {typeA} and {typeB} not implemented");
+        }
+        
+        public static void CompileAnd(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToBitAndOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"And of {typeA} and {typeB} not implemented");
         }
     }
 }

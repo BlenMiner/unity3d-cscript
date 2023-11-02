@@ -21,10 +21,10 @@ public class CScript : ScriptableObject
     [SerializeField] string m_CScriptSourceCode;
     [SerializeField] string m_savePath;
     [SerializeField] CTLexer m_lexer = new ();
-    [FormerlySerializedAs("mTypeSignaturesResolver")] [FormerlySerializedAs("m_typeResolver")] [SerializeField] TypeSignatureResolver mTypeSignatureResolver;
-    [SerializeField] Instruction[] m_compiled;
+    [SerializeField] TypeSignatureResolver m_typeSolver;
     [SerializeField] List<CScriptFunction> m_functions;
-    
+    [SerializeField] Instruction[] m_compiled;
+
     public IReadOnlyList<CTError> Errors => m_lexer.Errors;
 
     public Instruction[] Compiled => m_compiled;
@@ -39,17 +39,8 @@ public class CScript : ScriptableObject
     
     public int LineCount { get; private set; }
 
-    public CTRoot RootNode
-    {
-        get
-        {
-            if (m_rootNode == null )
-                ParseRootNode();
-            return m_rootNode;
-        }
-    }
-    
     public IReadOnlyList<CToken> Tokens => m_lexer.Tokens;
+    
     public string SavePath => m_savePath;
 
     public void Save()
@@ -79,7 +70,15 @@ public class CScript : ScriptableObject
         m_lexer.Parse(m_CScriptSourceCode);
 
         ParseRootNode();
-        Compile();
+        
+        try
+        {
+            Compile();
+        }
+        catch (CTLexerException e)
+        {
+            m_lexer.RegisterError(e.Error);
+        }
     }
 
     private void ParseRootNode()
@@ -90,9 +89,9 @@ public class CScript : ScriptableObject
 
     private void Compile()
     {
-        mTypeSignatureResolver = new TypeSignatureResolver(m_rootNode);
+        m_typeSolver = new TypeSignatureResolver(m_rootNode);
         
-        var c = new CTCompiler(m_rootNode, mTypeSignatureResolver);
+        var c = new CTCompiler(m_rootNode, m_typeSolver);
 
         m_compiled = c.Compile();
         m_functions ??= new List<CScriptFunction>();

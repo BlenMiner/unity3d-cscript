@@ -1,8 +1,8 @@
 ﻿  InterpreterTests.cpp
      Creating library C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.lib and object C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.exp
   Generating code
-  0 of 230 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  1 of 234 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   InterpreterTests.vcxproj -> C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.dll

@@ -31,9 +31,9 @@ namespace Riten.CScript.Compiler
                 throw new CTLexerException(node.ReturnToken, 
                     $"Return statement is of type {node.ReturnExpression.TypeName} but function expects {functionReturnType}.");
             }
-            
-            if (Scope.LocalVariables.Count > 0)
-                Compiler.Instructions.Add(new Instruction(Opcodes.POP_TO_SPTR, 0));
+
+            if (Scope.LocalVariables.Count > 0 && Expression != null)
+                CTypeResolver.CompilePopToSPTR(Compiler, Expression.TypeName, 0);
 
             if (Expression != null)
             {
