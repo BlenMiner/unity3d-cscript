@@ -63,6 +63,7 @@
         BIT_SHIFT_RIGHT_I16,
         BIT_SHIFT_RIGHT_I32,
         BIT_SHIFT_RIGHT_I64,
+        BATCHED_STACK_OP,
         PUSH_I8,
         PUSH_I16,
         PUSH_I32,

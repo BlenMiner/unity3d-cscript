@@ -44,6 +44,7 @@ OPCODE(X##_F64, double)
 	INT_OPCODE(BIT_SHIFT_LEFT)\
 	INT_OPCODE(BIT_SHIFT_RIGHT)\
     \
+    OPCODE(BATCHED_STACK_OP, void) \
 	\
 	INT_OPCODE(PUSH)\
 	FLOAT_OPCODE(PUSH)\
@@ -189,9 +190,14 @@ struct Program
 		IP = 0;
 	}
 
-	int GetSafeToExecuteBlindlyCount(const Instruction* instructions, int index)
+	int GetSafeToExecuteBlindlyCount(const Instruction* instructions, int index, int level = 0)
 	{
+		if (level > 100)
+			return 0;
+
 		auto count = 0;
+
+		int a, b;
 
 		for (auto i = index; i < instructionsCount; i++)
 		{
@@ -199,13 +205,18 @@ struct Program
 
 			switch (opcode)
 			{
+				case Opcodes::JMP:
+					return count + GetSafeToExecuteBlindlyCount(instructions, instructions[i].operand1, level + 1);
+
 				case Opcodes::JMP_IF_TOP_ZERO:
 				case Opcodes::JMP_IF_ZERO:
-				case Opcodes::JMP:
+				case Opcodes::CALL:
+					a = GetSafeToExecuteBlindlyCount(instructions, i + 1, level + 1);
+					b = GetSafeToExecuteBlindlyCount(instructions, instructions[i].operand1, level + 1);
+					return count + std::min(a, b);
 				case Opcodes::REPEAT:
 				case Opcodes::REPEAT_CONST:
 				case Opcodes::REPEAT_SPTR:
-				case Opcodes::CALL:
 				case Opcodes::RETURN:
 					return count;
 

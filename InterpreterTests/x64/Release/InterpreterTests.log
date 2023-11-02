@@ -1,8 +1,10 @@
 ﻿  InterpreterTests.cpp
+C:\wkspaces\cscript\Interpreter\Opcodes.h(209,79): warning C4244: 'argument': conversion from 'const __int64' to 'int', possible loss of data
+C:\wkspaces\cscript\Interpreter\Opcodes.h(215,68): warning C4244: 'argument': conversion from 'const __int64' to 'int', possible loss of data
      Creating library C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.lib and object C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.exp
   Generating code
-  1 of 234 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+  2 of 237 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   InterpreterTests.vcxproj -> C:\wkspaces\cscript\Interpreter\x64\Release\InterpreterTests.dll

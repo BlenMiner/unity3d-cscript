@@ -75,3 +75,95 @@ OPCODE_DEFINITION(SWAP_SPTR_SPTR)
 
 	NEXT_INSTRUCTION;
 }
+
+enum NativePtr : int
+{
+	CONST = 0,
+	SPTR,
+	PTR,
+	NONE
+};
+
+void PUSH_CONST(const int size, char* data, int& byteOffset, Stack* stack)
+{
+	switch (size)
+	{
+	case 0:
+		stack->PUSH(*(data + byteOffset));
+		byteOffset += sizeof(char);
+		break;
+	case 1:
+		stack->PUSH(*(short*)(data + byteOffset));
+		byteOffset += sizeof(short);
+		break;
+	case 2:
+		stack->PUSH(*(int*)(data + byteOffset));
+		byteOffset += sizeof(int);
+		break;
+	case 3:
+		stack->PUSH(*(long long*)(data + byteOffset));
+		byteOffset += sizeof(long long);
+		break;
+	}
+}
+
+void PUSH_FROM_SPTR(int size, char* data, int& byteOffset, Stack* stack)
+{
+	int sptrOffset = *(short*)(data + byteOffset);
+	byteOffset += sizeof(short);
+
+	switch (size)
+	{
+	case 0:
+		stack->PUSH(stack->GET_VAR<char>(sptrOffset));
+		break;
+	case 1:
+		stack->PUSH(stack->GET_VAR<short>(sptrOffset));
+		break;
+	case 2:
+		stack->PUSH(stack->GET_VAR<int>(sptrOffset));
+		break;
+	case 3:
+		stack->PUSH(stack->GET_VAR<long long>(sptrOffset));
+		break;
+	}
+}
+
+
+OPCODE_DEFINITION(BATCHED_STACK_OP)
+{
+	long long packed = context.operand1;
+	int byteOffset = 0;
+
+	const int count = packed & 0b1111;
+	char* data = (char*) & context.operand2;
+
+	packed >>= 4;
+
+	for (int i = 0; i < count; i++)
+	{
+		NativePtr type = (NativePtr)(packed & 0b11);
+		packed >>= 2;
+
+		int size = packed & 0b11;
+		packed >>= 2;
+
+		bool isPush = (packed & 0b1) == 0;
+		packed >>= 1;
+
+		if (isPush)
+		{
+			switch (type)
+			{
+				case CONST:
+					PUSH_CONST(size, data, byteOffset, stack);
+					break;
+				case SPTR:
+					PUSH_FROM_SPTR(size, data, byteOffset, stack);
+					break;
+			}
+		}
+	}
+
+	NEXT_INSTRUCTION;
+}
