@@ -33,16 +33,13 @@ OPCODE_DEFINITION(CALL)
 
 OPCODE_DEFINITION(CALL_ARGS)
 {
-	auto SP = stack->SP;
-
-	// move memory to two spaces ahead
-	memmove(
-		stack->rawData + SP - (sizeof(int) * 2),
-		stack->rawData + SP,
+	memcpy(
+		stack->rawData + stack->SP - (sizeof(int) * 2),
+		stack->rawData + stack->SP,
 		context.operand2
 	);
 
-	stack->SP = SP + context.operand2;
+	stack->SP += context.operand2;
 
 	stack->PUSH<int>(stack->SCOPE_SP);
 	stack->PUSH<int>(program->IP);
