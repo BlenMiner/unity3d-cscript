@@ -70,6 +70,9 @@ OPCODE(X##_F64, double)
 	\
 	INT_OPCODE(LESS_OR_EQUAL)\
 	FLOAT_OPCODE(LESS_OR_EQUAL)\
+	\
+	INT_OPCODE(GREATER_THAN)\
+	FLOAT_OPCODE(GREATER_THAN)\
 
 
 #define OPCODE(x, y) x,
@@ -206,13 +209,13 @@ struct Program
 			switch (opcode)
 			{
 				case Opcodes::JMP:
-					return count + GetSafeToExecuteBlindlyCount(instructions, instructions[i].operand1, level + 1);
+					return count + GetSafeToExecuteBlindlyCount(instructions, (int)instructions[i].operand1, level + 1);
 
 				case Opcodes::JMP_IF_TOP_ZERO:
 				case Opcodes::JMP_IF_ZERO:
 				case Opcodes::CALL:
 					a = GetSafeToExecuteBlindlyCount(instructions, i + 1, level + 1);
-					b = GetSafeToExecuteBlindlyCount(instructions, instructions[i].operand1, level + 1);
+					b = GetSafeToExecuteBlindlyCount(instructions, (int)instructions[i].operand1, level + 1);
 					return count + std::min(a, b);
 				case Opcodes::REPEAT:
 				case Opcodes::REPEAT_CONST:
@@ -238,7 +241,7 @@ struct Program
 	Stack* stack;
 	SaturatedInstruction* instructions;
 	int instructionsCount;
-	int IP;
+	long long IP;
 };
 
 #define OPCODE(x, y) OPCODE_DEFINITION(x);

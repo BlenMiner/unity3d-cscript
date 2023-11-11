@@ -58,38 +58,14 @@ void ExecuteInstructionImp(Program* program, SaturatedInstruction* instructions,
 	inst.function(program, stack, inst);
 }
 
-void DoExecute(Program* program, const unsigned long long length, Stack* stackPtr)
+void DoExecute(Program* program, const int length, Stack* stackPtr)
 {
-	auto instructions = program->instructions;
+	auto instruction = program->instructions;
+	long long ip;
 
-	while (program->IP < length)
+	while ((ip = program->IP) < length)
 	{
-		auto inst = instructions[program->IP];
-		inst.function(program, stackPtr, inst);
-
-		switch (inst.safeToExecuteBlindlyCount)
-		{
-		case 20: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 19: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 18: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 17: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 16: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 15: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 14: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 13: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 12: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 11: ExecuteInstructionImp(program, instructions, stackPtr);
-		case 10: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  9: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  8: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  7: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  6: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  5: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  4: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  3: ExecuteInstructionImp(program, instructions, stackPtr);
-		case  2: ExecuteInstructionImp(program, instructions, stackPtr);
-			break;
-		}
+		instruction[ip].function(program, stackPtr, instruction[ip]);
 	}
 }
 
@@ -125,7 +101,7 @@ long long ExecuteProgramWithOffset(Program* program, const int ipOffset)
 
 long long ExecuteFunction(Program* program, const int functionIP)
 {
-	auto length = (unsigned long long)program->instructionsCount;
+	auto length = program->instructionsCount;
 	Stack* stackPtr = program->stack;
 
 	stackPtr->ResetSP();

@@ -180,6 +180,21 @@ namespace Riten.CScript.Compiler
             
             throw new NotImplementedException($"Substraction of {typeA} and {typeB} not implemented");
         }
+        
+        public static void CompileGreaterThan(CTCompiler compiler, string typeA, string typeB)
+        {
+            var internalTypeA = ResolveType(typeA);
+            var internalTypeB = ResolveType(typeB);
+
+            if (internalTypeA == internalTypeB && internalTypeA != InternalType.CustomType)
+            {
+                var opcode = internalTypeA.InternalTypeToGreaterThanOpcode();
+                compiler.Instructions.Add(new Instruction(opcode));
+                return;
+            }
+            
+            throw new NotImplementedException($"Substraction of {typeA} and {typeB} not implemented");
+        }
 
         public static void CompileMult(CTCompiler compiler, string typeA, string typeB)
         {

@@ -12,12 +12,12 @@
 }
 
 #define PUSH_SPTR_GENERIC(X, Y) OPCODE_DEFINITION(X) {\
-	stack->PUSH(stack->GET_VAR<Y>(context.operand1));\
+	stack->PUSH_VAR<Y>(context.operand1);\
 	NEXT_INSTRUCTION;\
 }
 
 #define POP_SPTR_GENERIC(X, Y) OPCODE_DEFINITION(X) {\
-	stack->SET_VAR(context.operand1, stack->POP<Y>());\
+	stack->POP_TO_VAR<Y>(context.operand1);\
 	NEXT_INSTRUCTION;\
 }
 
@@ -50,12 +50,12 @@ OPCODE_DEFINITION(DUP)
 
 OPCODE_DEFINITION(RESERVE)
 { 
-	stack->SP -= context.operand1;
+	stack->SP -= (int)context.operand1;
 	NEXT_INSTRUCTION;
 }
 OPCODE_DEFINITION(DISCARD) 
 {
-	stack->SP += context.operand1;
+	stack->SP += (int)context.operand1;
 	NEXT_INSTRUCTION;
 }
 
@@ -115,16 +115,38 @@ void PUSH_FROM_SPTR(int size, char* data, int& byteOffset, Stack* stack)
 	switch (size)
 	{
 	case 0:
-		stack->PUSH(stack->GET_VAR<char>(sptrOffset));
+		stack->PUSH_VAR<char>(sptrOffset);
 		break;
 	case 1:
-		stack->PUSH(stack->GET_VAR<short>(sptrOffset));
+		stack->PUSH_VAR<short>(sptrOffset);
 		break;
 	case 2:
-		stack->PUSH(stack->GET_VAR<int>(sptrOffset));
+		stack->PUSH_VAR<int>(sptrOffset);
 		break;
 	case 3:
-		stack->PUSH(stack->GET_VAR<long long>(sptrOffset));
+		stack->PUSH_VAR<long long>(sptrOffset);
+		break;
+	}
+}
+
+void POP_TO_SPTR(int size, char* data, int& byteOffset, Stack* stack)
+{
+	int sptrOffset = *(short*)(data + byteOffset);
+	byteOffset += sizeof(short);
+
+	switch (size)
+	{
+	case 0:
+		stack->POP_TO_VAR<char>(sptrOffset);
+		break;
+	case 1:
+		stack->POP_TO_VAR<short>(sptrOffset);
+		break;
+	case 2:
+		stack->POP_TO_VAR<int>(sptrOffset);
+		break;
+	case 3:
+		stack->POP_TO_VAR<long long>(sptrOffset);
 		break;
 	}
 }
@@ -161,6 +183,15 @@ OPCODE_DEFINITION(BATCHED_STACK_OP)
 				case SPTR:
 					PUSH_FROM_SPTR(size, data, byteOffset, stack);
 					break;
+			}
+		}
+		else 
+		{
+			switch (type)
+			{
+			case SPTR:
+				POP_TO_SPTR(size, data, byteOffset, stack);
+				break;
 			}
 		}
 	}

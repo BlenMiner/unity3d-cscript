@@ -77,6 +77,10 @@ namespace Riten.CScript.Compiler
                 case CTokenType.BIT_AND:
                     CTypeResolver.CompileAnd(Compiler, op.Left.TypeName, op.Right.TypeName);
                     break;
+                
+                case CTokenType.MORE_THAN:
+                    CTypeResolver.CompileGreaterThan(Compiler, op.Left.TypeName, op.Right.TypeName);
+                    break;
 
                 default: throw new NotImplementedException($"Operator {op.Operator.Type} not implemented");
             }

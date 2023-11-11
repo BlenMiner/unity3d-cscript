@@ -2,19 +2,13 @@
 #include "Opcodes.h"
 
 #define UNIARY_OPERATION(X, Y, Z) OPCODE_DEFINITION(X) {\
-	auto res = stack->PEEK<Y>();\
-	stack->REPLACE<Y>(Z##res);\
-\
+	stack->DO_OPERATION_TOP_1<Y>([&] (Y &a) -> Y { return Z ## a;});\
 	NEXT_INSTRUCTION;\
 }
 
 
 #define GENERIC_OPERATION(X, Y, Z) OPCODE_DEFINITION(X) {\
-	auto a = stack->POP<Y>();\
-	auto b = stack->PEEK<Y>();\
-\
-	stack->REPLACE<Y>(b Z a);\
-\
+	stack->DO_OPERATION_TOP_2<Y>([&] (Y &a, Y &b) -> Y { return b ## Z ## a;});\
 	NEXT_INSTRUCTION;\
 }
 
@@ -66,19 +60,13 @@ INT_OPCODE(MODULO)
 
 OPCODE_DEFINITION(MODULO_F32)
 {
-	auto a = stack->POP<float>();
-	auto b = stack->PEEK<float>();
-
-	stack->REPLACE<float>(fmodf(b, a));
+	stack->DO_OPERATION_TOP_2<float>([&](float& a, float& b) -> float { return fmodf(b, a);});
 	NEXT_INSTRUCTION;
 }
 
 OPCODE_DEFINITION(MODULO_F64)
 {
-	auto a = stack->POP<double>();
-	auto b = stack->PEEK<double>();
-
-	stack->REPLACE<double>(fmod(b, a));
+	stack->DO_OPERATION_TOP_2<double>([&](double& a, double& b) -> double { return fmod(b, a);});
 	NEXT_INSTRUCTION;
 }
 

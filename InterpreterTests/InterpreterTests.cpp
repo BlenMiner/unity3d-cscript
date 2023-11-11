@@ -642,9 +642,9 @@ namespace InterpreterTests
 			auto program = CreateProgram(instructions, arrSize);
 
 			ExecuteInstruction(program, program->stack);
-			Assert::AreEqual((1), program->IP);
+			Assert::AreEqual(((long long)1), program->IP);
 			ExecuteInstruction(program, program->stack);
-			Assert::AreEqual((arrSize), program->IP);
+			Assert::AreEqual((long long)(arrSize), program->IP);
 
 			FreeProgram(program);
 		}

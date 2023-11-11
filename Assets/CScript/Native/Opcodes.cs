@@ -97,5 +97,11 @@
         LESS_OR_EQUAL_I64,
         LESS_OR_EQUAL_F32,
         LESS_OR_EQUAL_F64,
+        GREATER_THAN_I8,
+        GREATER_THAN_I16,
+        GREATER_THAN_I32,
+        GREATER_THAN_I64,
+        GREATER_THAN_F32,
+        GREATER_THAN_F64,
     }
 }

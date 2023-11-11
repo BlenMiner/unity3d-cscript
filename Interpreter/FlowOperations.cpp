@@ -10,53 +10,88 @@ OPCODE_DEFINITION(JMP)
 
 OPCODE_DEFINITION(JMP_IF_TOP_ZERO)	
 { 
-	if (stack->PEEK<char>() == 0)
-		 program->IP = context.operand1;
-	else NEXT_INSTRUCTION;
+	if (stack->PEEK<char>())
+		 NEXT_INSTRUCTION;
+	else program->IP = context.operand1;
 }
 
 OPCODE_DEFINITION(JMP_IF_ZERO)
 {
-	if (stack->POP<char>() == 0)
-		program->IP = context.operand1;
-	else NEXT_INSTRUCTION;
+	if (stack->POP<char>())
+		NEXT_INSTRUCTION;
+	else program->IP = context.operand1;
 }
 
 OPCODE_DEFINITION(CALL)
 {
-	stack->PUSH<int>(stack->SCOPE_SP);
-	stack->PUSH<int>(program->IP);
+	stack->PUSH_RETURN_INFO(program->IP, stack->SCOPE_SP);
 
 	program->IP = context.operand1;
 	stack->SCOPE_SP = stack->SP;
 }
 
+inline void smart_memcpy(void* dst, const void* src, const int len)
+{
+	switch (len)
+	{
+		case sizeof(int) :
+		{
+			*((int*)dst) = *((int*)src);
+			break;
+		}
+		case sizeof(char) :
+		{
+			*((char*)dst) = *((char*)src);
+			break;
+		}
+		case sizeof(long long) :
+		{
+			*((long long*)dst) = *((long long*)src);
+			break;
+		}
+		case sizeof(short) :
+		{
+			*((short*)dst) = *((short*)src);
+			break;
+		}
+
+		default:
+		{
+			memcpy(
+				dst,
+				src,
+				len
+			);
+			break;
+		}
+	}
+}
+
 OPCODE_DEFINITION(CALL_ARGS)
 {
-	memcpy(
-		stack->rawData + stack->SP - (sizeof(int) * 2),
-		stack->rawData + stack->SP,
-		context.operand2
+	int op2 = (int)context.operand2;
+	auto offset = stack->rawData + stack->SP;
+
+	smart_memcpy(
+		offset - (sizeof(int) * 2),
+		offset,
+		op2
 	);
 
-	stack->SP += context.operand2;
+	stack->SP += op2;
+	stack->PUSH_RETURN_INFO(program->IP, stack->SCOPE_SP);
 
-	stack->PUSH<int>(stack->SCOPE_SP);
-	stack->PUSH<int>(program->IP);
-
-	program->IP = context.operand1;
+	program->IP = (int)context.operand1;
 	stack->SCOPE_SP = stack->SP;
 }
 
 OPCODE_DEFINITION(RETURN)
 {
-	auto scope = stack->SCOPE_SP;
 	auto startCopyIdx = stack->SP;
-	auto copySize = scope - startCopyIdx;
+	auto copySize = stack->SCOPE_SP - startCopyIdx;
 
-	stack->SP = scope;
-	program->IP =		stack->POP<int>();
-	stack->SCOPE_SP =	stack->POP<int>();
+	stack->SP = stack->SCOPE_SP;
+	stack->POP_RETURN_INFO(program->IP, stack->SCOPE_SP);
 
 	if (copySize == 0)
 	{
@@ -66,7 +101,7 @@ OPCODE_DEFINITION(RETURN)
 
 	stack->SP -= copySize;
 
-	memcpy(
+	smart_memcpy(
 		stack->rawData + stack->SP,
 		stack->rawData + startCopyIdx,
 		copySize
@@ -84,8 +119,8 @@ void REPEAT_COUNT(Program* program, Stack* stack, const long long loopTimes)
 {
 	NEXT_INSTRUCTION;
 
-	long long loopStart = program->IP;
-	long long loopEnd = loopStart;
+	auto loopStart = program->IP;
+	auto loopEnd = loopStart;
 
 	while (loopEnd < program->instructionsCount &&
 		program->instructions[loopEnd].opcode != REPEAT_END)

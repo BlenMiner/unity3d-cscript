@@ -93,6 +93,24 @@ namespace Riten.CScript.Native
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get adder.")
             };
         }
+
+        public static Opcodes InternalTypeToGreaterThanOpcode(this InternalType type)
+        {
+            return type switch
+            {
+                InternalType.I8 => Opcodes.GREATER_THAN_I8,
+                InternalType.U8 => Opcodes.GREATER_THAN_I8,
+                InternalType.I16 => Opcodes.GREATER_THAN_I16,
+                InternalType.U16 => Opcodes.GREATER_THAN_I16,
+                InternalType.I32 => Opcodes.GREATER_THAN_I32,
+                InternalType.U32 => Opcodes.GREATER_THAN_I32,
+                InternalType.I64 => Opcodes.GREATER_THAN_I64,
+                InternalType.U64 => Opcodes.GREATER_THAN_I64,
+                InternalType.F32 => Opcodes.GREATER_THAN_F32,
+                InternalType.F64 => Opcodes.GREATER_THAN_F64,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Type isn't internal, can't get greater than.")
+            };
+        }
         
         public static Opcodes InternalTypeToLessOrEqualOpcode(this InternalType type)
         {
